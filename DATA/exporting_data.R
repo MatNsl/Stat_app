@@ -3,8 +3,8 @@ install.packages("haven")
 library(haven)
 
 
-data <- read_dta("~/work/DATA/eulfs_small.dta")
-output_path <- ("~/work/DATA/eulfs_small.csv")
+data <- read_dta("~/work/Stat_app/DATA/eulfs_small.dta")
+output_path <- ("~/work/Stat_app/DATA/eulfs_small.csv")
 
 # Write the data in CSV in the path wanted
 write.csv(data, file = output_path, row.names = FALSE)
