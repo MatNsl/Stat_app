@@ -65,7 +65,10 @@ boxplot(eulfs_small$hwusual ~ eulfs_small$sex,
         names = c("Men", "Women")
 )
 
-#We norice a small genre difference between men and women.
+#We notice a small genre difference between men and women.
 #These lasts tend to work a little less hours per week but the working hour rate
 # is more variable within their social group.
 
+
+#VARITIME : Decision on the start and end of working time 
+It doesn't exist in this version of the data, so we wait for the new one
