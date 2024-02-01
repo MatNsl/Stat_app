@@ -61,7 +61,7 @@ ggplot(mean_by_year, aes(x = year, y = mean_hwactual, fill = year)) +
        x = "Year",
        y = "Mean of Hours Worked")
 ```
-The mean of hours worked has slightly decreased between 1988 and 2013, going from 2,3 to 3,5.
+The mean of hours worked has slightly decreased between 1988 and 2013, going from around 37 to 33 hours.
 
 
 
