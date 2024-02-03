@@ -1,0 +1,175 @@
+---
+title: "Has there been a polarization of working hours? Analysis of the European Union Labor Force Survey"
+output: html_notebook
+---
+
+
+## Problematic and motivations 
+
+Both academic and public debates suggest that there has been a polarization of working hours. Some
+people are working very short hours—the underemployed, and some work very long hours—the
+overworked. Further, longer hours are concentrated among those with higher earnings and shorter
+hours among those with low earnings. Such a polarization has important consequences, not just for
+social inequality overall, but also for the lives of the individual workers.
+
+But is this actually true? This Stat’App will investigate this question by analyzing long-running survey
+data to assess trends in working hours across European countries. We will make use of unconditional
+quantile regression and Oaxaca-Blinder decompositions. These models enable us to understand, which
+group, like single-mothers or physicians, contribute to changes in the working hour distribution over
+time.
+
+```{r}
+source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
+```
+
+
+```{r}
+#Packages :
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("labelled")
+library("dplyr")
+library("ggplot2")
+library("labelled")
+
+
+```
+## Descriptive statistics
+
+An histogram of the mean of the number of hours actually worked in main job by year 
+
+```{r}
+##An histogram of the mean of the number of hours actually worked in main job by year 
+# Convert the "year" variable to a factor for correct visualization in the histogram
+eulfs_small$year <- as.factor(eulfs_small$year)
+
+# Remove values 99 (not applicable) from the hwactual variable
+eulfs_small$hwactual <- na_if(eulfs_small$hwactual, 99)
+
+# Filter data to exclude NA values in the hwactual variable
+eulfs_filtered <- eulfs_small %>% filter(!is.na(hwactual))
+
+# Calculate the mean of the number of hours worked for each year
+mean_by_year <- eulfs_filtered %>%
+  group_by(year) %>%
+  summarise(mean_hwactual = mean(hwactual, na.rm = TRUE))
+
+# Create a histogram
+ggplot(mean_by_year, aes(x = year, y = mean_hwactual, fill = year)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Mean of the Number of Hours Worked per Year",
+       x = "Year",
+       y = "Mean of Hours Worked")
+```
+The mean of hours worked has slightly decreased between 1988 and 2013, going from around 37 to 33 hours.
+
+
+
+An histogram of the mean of the number of hours actually worked in main job by country
+```{r}
+##An histogram of the mean of the number of hours actually worked in main job by country  
+
+# Convert the "countryw" variable to a factor for correct visualization in the bar plot
+eulfs_small$countryw <- as.factor(eulfs_small$countryw)
+
+# Remove values 99 (not applicable) from the hwactual variable
+eulfs_small$hwactual <- na_if(eulfs_small$hwactual, 99)
+
+# Filter data to exclude NA values in the hwactual variable
+eulfs_filtered_country <- eulfs_small %>% filter(!is.na(hwactual))
+
+
+
+# Calculate the mean of the number of hours worked for each country
+mean_by_country <- eulfs_filtered_country %>%
+  group_by(countryw) %>%
+  summarise(mean_hwactual = mean(hwactual, na.rm = TRUE))
+
+# Create a bar plot
+ggplot(mean_by_country, aes(x = countryw, y = mean_hwactual, fill = countryw)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Mean of the Number of Hours Worked per Country",
+       x = "Country",
+       y = "Mean of Hours Worked")
+```
+For the moment we do not have the right documentation to identify the country. Still, we can see that the mean of hours worked  varies considerably between the different countries.
+
+ 
+
+An histogramm about the number of hours actually worked in main job
+
+```{r}
+# An histogramm about the number of hours actually worked in main job
+hist(eulfs_small$hwactual, col = "skyblue",
+     main = "Distribution of the numbers of hours",
+     xlab = "Number of hours",
+     ylab = "Number of people")
+
+
+
+```
+The peak of the distribution is clearly between 35 and 40 hours with more than 40000 people
+But the second most important interval is between 0 and 5 hours
+
+```{r}
+# An histogramm about the number of hours that the person would like to work in total in a week
+hist(eulfs_small$hwwish, col = "skyblue",
+     main = "Distribution of the numbers of hours people wish",
+     xlab = "Number of hours",
+     ylab = "Number of people")
+```
+A vast majority of people (more than 40000) wish to work between 35 and 40 hours
+
+
+
+Comparaison between men and women
+
+-Comparison between men and women concerning the number of hours actually worked in main job 
+
+```{r}
+# Comparison between men and women concerning the number of hours actually worked in main job
+boxplot(eulfs_small$hwactual ~ eulfs_small$sex,
+        xlab = "Sex",
+        ylab = "Number of hours",
+        names = c("Men", "Women"),
+        col = c("blue", "red") 
+)
+
+```
+Both medians are not so far away from each other
+But the variability is much higher for women with a first quartile that is close from the minimum of men.
+
+
+-Comparison between men and women concerning the number of hours actually worked in main job per week
+
+```{r}
+# Comparison between men and women concerning the number of hours actually worked in main job per week 
+boxplot(eulfs_small$hwusual ~ eulfs_small$sex,
+        xlab = "Sex",
+        ylab = "Number of hours",
+        names = c("Men", "Women"),
+        col = c("blue", "red")  
+)
+```
+Here, the medians are still not so far away from each other.
+But the variability is also much higher for women.
+
+
+```{r}
+# AVAILBLE : Availability to start working immediately or to work more
+eulfs_small$availble <- as.numeric(as.character(eulfs_small$availble), na.rm = TRUE)
+
+# An histogramm about the availability to start working immediately or to work more
+percentages <- table(eulfs_small$availble) / length(eulfs_small$availble) * 100
+
+# Barplot with pourcentages
+barplot(percentages, 
+        col = "skyblue",
+        main = "Availability to start working immediately \nor to work more (within two weeks)",
+        ylab = "Percentage of people",
+        names.arg = c("Yes", "No"),
+        ylim = c(0, max(percentages) + 2))
+# Add percentages
+text(c(1, 2), percentages, sprintf("%.1f%%", percentages), pos = 3, offset = 0.5)
+```
+We note that we have a lot of non-respondants.They must be people who don't suffer their working hours (both ways).
