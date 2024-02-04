@@ -173,3 +173,18 @@ barplot(percentages,
 text(c(1, 2), percentages, sprintf("%.1f%%", percentages), pos = 3, offset = 0.5)
 ```
 We note that we have a lot of non-respondants.They must be people who don't suffer their working hours (both ways).
+
+We do not know yet how to identify countries.
+However, we may analyse data for a specific country, for instance "number 3"
+```{r}
+# We start by creating a smaller base to work with
+eulfs_pays3 <- eulfs_small %>% filter(countryw == 3) %>% select(hwactual, refyear)
+# We indicate what statistics we want to appear on the plot
+frame <- eulfs_pays3 %>% group_by(refyear, .drop = NA) %>% summarise(Min = min(hwactual, na.rm = TRUE), Max = max(hwactual, na.rm = TRUE), Median = median(hwactual, na.rm = TRUE), quant1 = quantile(hwactual, probs = 0.25, na.rm = TRUE), quant2 = quantile(hwactual, probs = 0.75, na.rm = TRUE))
+ggplot(frame, aes(x = refyear, na.rm = TRUE)) + geom_line(aes(y=Min)) + geom_line(aes(y=Max)) + geom_line(aes(y=Median), color = "darkred") + geom_line(aes(y=quant1), color = "green") + geom_line(aes(y=quant2), color = "green") 
+
+```
+
+We notice that all quartiles remain somewhat stable, except the first quartile.
+Indeed, the quarter of the population who work the least has less and less working hours.
+The number of hours dropped below 20 hours after 2010.
