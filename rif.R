@@ -23,10 +23,10 @@ rif_q25 <- dineq::rif(x=eulfs_small$hwactual, weights=NULL, method="quantile", q
 
 # Remark: 
 # To have the influence function itself, we can subtract the quantile to RIF
-if_q25 <- rif_q25 - quantile(eulfs_small$hwactual, na.rm = TRUE)
+if_q25 <- rif_q25 - quantile(eulfs_small$hwactual, probs = 0.25, na.rm = TRUE)
 
 # RIF Regression with the same distributional statistic, namely the 25th quantile
-rifr_q <- dineq::rifr(hwactual ~ age + hatlev1d + degurba, eulfs_small, weights = NULL, method = "quantile", quantile = 0.25, kernel = "gaussian")
+rifr_q <- dineq::rifr(hwactual ~ age + hatlev1d + as.factor(degurba), eulfs_small, weights = NULL, method = "quantile", quantile = 0.25, kernel = "gaussian")
 # We obtain a list of 5 elements that sum up the regression
 rifr_q[["Coef"]]
 # For instance, we obtain a negative coefficient (-0.0192) before the age variable
