@@ -1,0 +1,53 @@
+---
+title: "Oaxaca_Blinder"
+output: html_document
+date: "2024-02-27"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Installing the right package
+install.packages("oaxaca")
+
+# To avoid problems with 99
+eulfs_small$hwactual <- na_if(eulfs_small$hwactual, 99)
+eulfs_small$hwwish <- na_if(eulfs_small$hwwish, 99)
+```
+
+```{r}
+# Creating a function to summarize what we learn thanks to Oaxaca decomposition
+Blinder_Oaxaca <- function(eulfs_oaxaca, log_group, group0, group1)
+{ 
+results <- eulfs_oaxaca %>% oaxaca::oaxaca(formula = hwactual ~ age + hatlev1d + as.factor(degurba) | log_group)
+# Number of observations
+print(paste("Among", results$n[[3]], "observations, we have", results$n[[1]], group0, "and", results$n[[2]], group1))
+# Looking at the means
+print(paste("The mean of the number of hours actually worked is", results$y[[1]], "hours for", group0, "and", results$y[[2]], "for", group1, "leaving a difference of approximately", results$y[[3]], "hours to be explained by the Blinder-Oaxaca decomposition."))
+# Exploring the decomposition
+print(paste("This decomposition suggests that, of the", results$y[[3]], "hours difference, approximately", results$threefold$overall[[1]], "can be attributed to group differences in endowments (i.e., age, education, living in a city or not),", results$threefold$overall[[3]], "to differences in coefficients, and the remaining", results$threefold$overall[[5]] , "is accounted for by the interaction of the two."))
+  }
+
+```
+
+## One basic example: men and women
+```{r}
+eulfs_small_bis <- eulfs_small
+eulfs_small_bis$log_sex <- as.logical(eulfs_small_bis$sex - 1)
+# To have an indicator variable to distinguish two groups
+# FALSE is for male, TRUE for female
+```
+
+```{r}
+Blinder_Oaxaca(eulfs_small_bis, log_sex, "men", "women")
+```
+
+## Visualizing the decomposition
+
+```{r, echo = FALSE}
+plot(results, components = c("endowments","coefficients"))
+```
+
+We may see the importance of each type of coefficients.
