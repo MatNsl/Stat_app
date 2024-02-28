@@ -12,9 +12,8 @@ download.file(dropbox_link, destfile = "eulfs_small.dta", mode = "wb")
 
 
 #Read the .dta file
-eulfs_small <- read_dta("eulfs_small.dta")
 
-
+eulfs_small <- haven::read_dta('eulfs_small.dta')
 
 
 
