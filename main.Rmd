@@ -1,10 +1,13 @@
 ---
-title: "Has there been a polarization of working hours? Analysis of the European Union Labor Force Survey"
-output: html_notebook
+title: Has there been a polarization of working hours? Analysis of the European Union
+  Labor Force Survey
+output:
+  pdf_document: default
+  html_notebook: default
 ---
 
 
-## Problematic and motivations 
+# Problematic and motivations 
 
 Both academic and public debates suggest that there has been a polarization of working hours. Some
 people are working very short hours—the underemployed, and some work very long hours—the
@@ -25,18 +28,36 @@ source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
 
 ```{r}
 #Packages :
+
 install.packages("dplyr")
 install.packages("ggplot2")
 install.packages("labelled")
+install.packages("haven")
+install.packages("openxlsx")
+library("openxlsx")
 library("dplyr")
 library("ggplot2")
 library("labelled")
+library("haven")
 
 
 ```
-## Descriptive statistics
 
-An histogram of the mean of the number of hours actually worked in main job by year 
+```{r}
+
+eulfs_small |>
+  dplyr::mutate(country = haven::as_factor(country)) |>
+  head()
+
+
+path <- "~/work/Stat_app/Countries/countries_code_coordinates.xlsx"
+
+# Lire le fichier Excel
+countries_code <- read.xlsx(path)
+```
+# Descriptive statistics
+##Means of the number of hours actually worked in main job per week 
+###An histogram of the mean of the number of hours actually worked in main job per week, by year
 
 ```{r}
 ##An histogram of the mean of the number of hours actually worked in main job by year 
@@ -65,12 +86,14 @@ The mean of hours worked has slightly decreased between 1988 and 2013, going fro
 
 
 
-An histogram of the mean of the number of hours actually worked in main job by country
+#####An histogram of the mean of the number of hours actually worked in main job per week, by country  
+
 ```{r}
+
 ##An histogram of the mean of the number of hours actually worked in main job by country  
 
-# Convert the "countryw" variable to a factor for correct visualization in the bar plot
-eulfs_small$countryw <- as.factor(eulfs_small$countryw)
+# Convert the "country" variable to a factor for correct visualization in the bar plot
+eulfs_small$country <- as.factor(eulfs_small$country)
 
 # Remove values 99 (not applicable) from the hwactual variable
 eulfs_small$hwactual <- na_if(eulfs_small$hwactual, 99)
@@ -78,25 +101,37 @@ eulfs_small$hwactual <- na_if(eulfs_small$hwactual, 99)
 # Filter data to exclude NA values in the hwactual variable
 eulfs_filtered_country <- eulfs_small %>% filter(!is.na(hwactual))
 
-
-
 # Calculate the mean of the number of hours worked for each country
 mean_by_country <- eulfs_filtered_country %>%
-  group_by(countryw) %>%
+  group_by(country) %>%
   summarise(mean_hwactual = mean(hwactual, na.rm = TRUE))
+# Merge mean_by_country with countries_code
+mean_by_country <- merge(mean_by_country, countries_code, by = "country")
 
-# Create a bar plot
-ggplot(mean_by_country, aes(x = countryw, y = mean_hwactual, fill = countryw)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Mean of the Number of Hours Worked per Country",
-       x = "Country",
-       y = "Mean of Hours Worked")
+
+mean_value_EU <- mean(eulfs_filtered_country$hwactual)
+
+# Create a horizontal bar plot
+ggplot(mean_by_country, aes(x = mean_hwactual, y = reorder(country_name, -mean_hwactual))) +
+  
+  # Add horizontal bars to the plot
+  geom_col(width = 0.7) +
+  # Add labels and title to the plot
+  labs(
+    title = "Mean of the Number of Hours Worked per Week, per Country",
+    x = "Mean of Hours Worked per week",
+    y = "Country"
+  ) +
+  geom_vline(xintercept = mean_value_EU, linetype = "solid", color = "red") +
+  # Set the theme to minimal
+  theme_minimal()
+
+
+
 ```
-For the moment we do not have the right documentation to identify the country. Still, we can see that the mean of hours worked  varies considerably between the different countries.
 
- 
 
-An histogramm about the number of hours actually worked in main job
+Figure 2. **Average weekly working hours varie considerably between countries.** Values range from 27.46 hours a week in the Netherlands to 40.10 in Greece, with an average for the 31 countries of **34.63** (represented by the red line on the graph). 
 
 ```{r}
 # An histogramm about the number of hours actually worked in main job
