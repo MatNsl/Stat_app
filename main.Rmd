@@ -2,8 +2,10 @@
 title: Has there been a polarization of working hours? Analysis of the European Union
   Labor Force Survey
 output:
-  pdf_document: default
+  html_document:
+    df_print: paged
   html_notebook: default
+  pdf_document: default
 ---
 
 
@@ -86,7 +88,7 @@ The mean of hours worked has slightly decreased between 1988 and 2013, going fro
 
 
 
-#####An histogram of the mean of the number of hours actually worked in main job per week, by country  
+###An histogram of the mean of the number of hours actually worked in main job per week, by country  
 
 ```{r}
 
@@ -131,7 +133,10 @@ ggplot(mean_by_country, aes(x = mean_hwactual, y = reorder(country_name, -mean_h
 ```
 
 
-Figure 2. **Average weekly working hours varie considerably between countries.** Values range from 27.46 hours a week in the Netherlands to 40.10 in Greece, with an average for the 31 countries of **34.63** (represented by the red line on the graph). 
+Figure 2. **Average weekly working hours varie considerably between countries.** Values range from 27.46 hours a week in the Netherlands to 40.10 in Greece, with an average for the 31 countries of **34.63** (represented by the red line on the graph).Arithmetic mean of usual working hours, 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+
+
 
 ```{r}
 # An histogramm about the number of hours actually worked in main job
