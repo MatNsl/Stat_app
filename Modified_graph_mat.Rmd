@@ -26,6 +26,21 @@ library("magrittr")
 ```
 
 
+An histogramm about the number of hours actually worked in main job
+
+```{r}
+# An histogramm about the number of hours actually worked in main job
+hist(eulfs_small$hwactual, col = "skyblue",
+     main = "Distribution of the numbers of hours",
+     xlab = "Number of hours",
+     ylab = "Number of people")
+
+```
+Figure 3. \textbf{The vast majority of Europeans work between 35 and 40 hours a week but those who work the least represent a strong minority.} Bar chart of the number of hours actually worked, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+The peak of the distribution is clearly between 35 and 40 hours with more than 40000 people.
+But the second most important interval is between 0 and 5 hours.
+
 We may analyse data for a specific country, for instance Austria.
 
 ```{r fig.cap= ""}
