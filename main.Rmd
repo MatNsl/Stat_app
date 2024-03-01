@@ -86,6 +86,24 @@ ggplot(mean_by_year, aes(x = year, y = mean_hwactual, fill = year)) +
 ```
 The mean of hours worked has slightly decreased between 1988 and 2013, going from around 37 to 33 hours.
 
+```{r}
+for (colonne in column_names) {
+  # Nettoyer le nom de la colonne
+  clean_colonne <- make.names(colonne)
+  
+  # Utiliser le nom de colonne nettoyé dans ggplot
+  ggplot(mean_by_country_year, aes_string(x = "year", y = clean_colonne)) +
+    geom_point() +
+    geom_line() +
+    labs(
+      title = "Mean of the Number of Hours Worked per Country",
+      x = "Year",
+      y = "Mean of Hours Worked per week"
+    ) +
+    theme_minimal()
+}
+
+```
 
 
 ###An histogram of the mean of the number of hours actually worked in main job per week, by country  

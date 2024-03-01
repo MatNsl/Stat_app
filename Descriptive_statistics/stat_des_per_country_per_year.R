@@ -38,7 +38,7 @@ print(plot(mean_by_year$year, mean_by_year$mean_hwactual, type = "bar",
 ##An histogram of the mean of the number of hours actually worked in main job by country  
 
 # Convert the "countryw" variable to a factor for correct visualization in the bar plot
-eulfs_small$countryw <- as.factor(eulfs_small$countryw)
+eulfs_small$countryw <- as.factor(eulfs_small$country)
 
 # Remove values 99 (not applicable) from the hwactual variable
 eulfs_small$hwactual <- na_if(eulfs_small$hwactual, 99)
@@ -50,14 +50,14 @@ eulfs_filtered_country <- eulfs_small %>% filter(!is.na(hwactual))
 
 # Calculate the mean of the number of hours worked for each country
 mean_by_country <- eulfs_filtered_country %>%
-  group_by(countryw) %>%
+  group_by(country) %>%
   summarise(mean_hwactual = mean(hwactual, na.rm = TRUE))
 # Merge mean_by_country with countries_code
-mean_by_country <- merge(mean_by_country, countries_codes, by = "countryw")*
+mean_by_country <- merge(mean_by_country, countries_codes, by = "country")
 #this code will work when we'll have the right correspondance between the numeric value and the alpha.2.code (that is not the case with the actual data base)
 
 # Create a bar plot
-ggplot(mean_by_country, aes(x = alpha_2_code, y = mean_hwactual, fill = countryw)) +
+ggplot(mean_by_country, aes(x = alpha_2_code, y = mean_hwactual, fill = country)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(title = "Mean of the Number of Hours Worked per Country",
        x = "Country",
