@@ -21,25 +21,54 @@ library("dplyr")
 library("ggplot2")
 library("labelled")
 
-library("knitr")
 library("magrittr")
 ```
 
 
-An histogramm about the number of hours actually worked in main job
-
 ```{r}
-# An histogramm about the number of hours actually worked in main job
+# An histogram about the number of hours actually worked in main job
 hist(eulfs_small$hwactual, col = "skyblue",
      main = "Distribution of the numbers of hours",
      xlab = "Number of hours",
      ylab = "Number of people")
 
 ```
-Figure 3. \textbf{The vast majority of Europeans work between 35 and 40 hours a week but those who work the least represent a strong minority.} Bar chart of the number of hours actually worked, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+Figure 3. \textbf{The vast majority of Europeans work between 35 and 40 hours a week but those who work the least represent a strong minority.} Histogram of the number of hours actually worked, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
 
 The peak of the distribution is clearly between 35 and 40 hours with more than 40000 people.
 But the second most important interval is between 0 and 5 hours.
+
+--------------------
+
+```{r}
+# An histogram about the number of hours that the person would like to work in total in a week
+hist(eulfs_small$hwwish, col = "skyblue",
+     main = "Distribution of the numbers of hours people wish",
+     xlab = "Number of hours",
+     ylab = "Number of people")
+```
+Figure 4. \textbf{The vast majority of Europeans want to work between 35 and 40 hours a week.} Histogram of the number of hours people wish to work, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+By contrast with the number of hours actually worked, there is almost no one who want to work less than 5 hours a week. Europeans tend to be unanimous on this issue.
+
+---------------
+
+```{r}
+# Boxplot to compare men and women concerning the number of hours actually worked in main job
+boxplot(eulfs_small$hwactual ~ eulfs_small$sex,
+        xlab = " ",
+        ylab = "Number of hours",
+        names = c("Men", "Women"),
+        col = c("blue", "red"),
+        main = "Actual weekly working hours: men and women"
+)
+
+```
+Figure 4. \textbf{Although the median number of working hours is almost the same for each sex, the variability is much higher for women.} Boxplot of the number of hours actually worked depending on sex, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+The variability is much higher for female workers: their first quartile that is close from the minimum of men.
+
+---------------
 
 We may analyse data for a specific country, for instance Austria.
 
