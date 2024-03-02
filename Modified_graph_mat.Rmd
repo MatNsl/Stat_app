@@ -21,17 +21,25 @@ library("dplyr")
 library("ggplot2")
 library("labelled")
 
+# Add this package for %>%
 library("magrittr")
 ```
 
-
 ```{r}
-# An histogram about the number of hours actually worked in main job
-hist(eulfs_small$hwactual, col = "skyblue",
-     main = "Distribution of the numbers of hours",
-     xlab = "Number of hours",
-     ylab = "Number of people")
-
+# Get the density estimate
+dens <- density(eulfs_small$hwactual, na.rm = TRUE)
+# Need to delete negative values for the number of working hours, as well as the values above 80 hours which are absent to the dataset
+# Need for x and y with the same length
+n <- length(dens[[1]])
+dens[[1]] <- dens[[1]][!(dens[[1]] < 0)]
+n_1 <- length(dens[[1]])
+loss_1 <- n - n_1 # number of first elements that were deleted
+dens[[1]] <- dens[[1]][!(dens[[1]] > 80)]
+loss_2 <- n_1 - length(dens[[1]]) # number of last elements that were deleted
+dens[[2]] <- tail(dens[[2]],-loss_1)
+dens[[2]] <- head(dens[[2]], -loss_2)
+# Plot y-values scaled by number of observations against x values
+plot <- plot(dens$x,length(eulfs_small$hwactual)*dens$y,type="l",xlab="Number of hours",ylab="Number of people", main = "Distribution of the numbers of hours")
 ```
 Figure 3. \textbf{The vast majority of Europeans work between 35 and 40 hours a week but those who work the least represent a strong minority.} Histogram of the number of hours actually worked, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
 
