@@ -1,0 +1,98 @@
+---
+title: "Modified_graph_Mat"
+output: html_document
+date: "2024-02-27"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
+```
+
+```{r}
+#Packages :
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("labelled")
+library("dplyr")
+library("ggplot2")
+library("labelled")
+
+# Add this package for %>%
+library("magrittr")
+```
+
+```{r}
+# Get the density estimate
+dens <- density(eulfs_small$hwactual, na.rm = TRUE)
+# Need to delete negative values for the number of working hours, as well as the values above 80 hours which are absent to the dataset
+# Need for x and y with the same length
+n <- length(dens[[1]])
+dens[[1]] <- dens[[1]][!(dens[[1]] < 0)]
+n_1 <- length(dens[[1]])
+loss_1 <- n - n_1 # number of first elements that were deleted
+dens[[1]] <- dens[[1]][!(dens[[1]] > 80)]
+loss_2 <- n_1 - length(dens[[1]]) # number of last elements that were deleted
+dens[[2]] <- tail(dens[[2]],-loss_1)
+dens[[2]] <- head(dens[[2]], -loss_2)
+# Plot y-values scaled by number of observations against x values
+plot <- plot(dens$x,length(eulfs_small$hwactual)*dens$y,type="l",xlab="Number of hours",ylab="Number of people", main = "Distribution of the numbers of hours")
+```
+Figure 3. \textbf{The vast majority of Europeans work between 35 and 40 hours a week but those who work the least represent a strong minority.} Histogram of the number of hours actually worked, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+The peak of the distribution is clearly between 35 and 40 hours with more than 40000 people.
+But the second most important interval is between 0 and 5 hours.
+
+--------------------
+
+```{r}
+# An histogram about the number of hours that the person would like to work in total in a week
+hist(eulfs_small$hwwish, col = "skyblue",
+     main = "Distribution of the numbers of hours people wish",
+     xlab = "Number of hours",
+     ylab = "Number of people")
+```
+Figure 4. \textbf{The vast majority of Europeans want to work between 35 and 40 hours a week.} Histogram of the number of hours people wish to work, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+By contrast with the number of hours actually worked, there is almost no one who want to work less than 5 hours a week. Europeans tend to be unanimous on this issue.
+
+---------------
+
+```{r}
+# Boxplot to compare men and women concerning the number of hours actually worked in main job
+boxplot(eulfs_small$hwactual ~ eulfs_small$sex,
+        xlab = " ",
+        ylab = "Number of hours",
+        names = c("Men", "Women"),
+        col = c("blue", "red"),
+        main = "Actual weekly working hours: men and women"
+)
+
+```
+Figure 4. \textbf{Although the median number of working hours is almost the same for each sex, the variability is much higher for women.} Boxplot of the number of hours actually worked depending on sex, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+The variability is much higher for female workers: their first quartile that is close from the minimum of men.
+
+---------------
+
+We may analyse data for a specific country, for instance Austria.
+
+```{r fig.cap= ""}
+# Starting by creating a smaller base to work with
+eulfs_AT <- eulfs_small %>% filter(country == 1) %>% select(hwactual, refyear)
+# Indicating what statistics we want to appear on the plot
+frame <- eulfs_AT %>% group_by(refyear, .drop = NA) %>% summarise(Min = min(hwactual, na.rm = TRUE), Max = max(hwactual, na.rm = TRUE), Median = median(hwactual, na.rm = TRUE), quant1 = quantile(hwactual, probs = 0.25, na.rm = TRUE), quant2 = quantile(hwactual, probs = 0.75, na.rm = TRUE))
+# Creating the graph
+p <- ggplot(frame, aes(x = refyear, na.rm = TRUE)) + geom_line(aes(y=Min)) + geom_line(aes(y=Max), color = "green") + geom_line(aes(y=Median), color = "darkred") + geom_line(aes(y=quant1), color = "blue") + geom_line(aes(y=quant2), color = "red") + labs(title = "Actual weekly working hours in 1st job in Austria", x=" ", y="Number of weekly working hours")
+# Plotting the graph
+p
+```
+Figure X. \textbf{Those who work the least tend to have less and less working hours in recent years in Austria.} A few order statistics concerning Austria: the minimum, the three quartiles and the maximum of the number of hours actually worked in main job. From the 2014 release of the EU Labor Force Survey, own analyses.
+
+We notice that all quartiles remain somewhat stable, except the first quartile.
+Indeed, the quarter of the population who work the least has less and less working hours.
+The number of hours dropped below 20 hours after 2010.
+
