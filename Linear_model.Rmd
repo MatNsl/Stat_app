@@ -1,0 +1,50 @@
+---
+title: "Linear model"
+output: html_document
+date: "2024-03-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
+```
+
+```{r}
+source(file="~/work/Stat_app/Countries/countries_code.R")
+```
+
+```{r}
+#Packages :
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("labelled")
+library("dplyr")
+library("ggplot2")
+library("labelled")
+
+# Add this package for %>%
+library("magrittr")
+```
+
+Source:
+https://search.r-project.org/CRAN/refmans/miceadds/html/lm.cluster.html
+```{r}
+install.packages("miceadds")
+```
+
+```{r}
+model <- miceadds::lm.cluster(formula = hwactual ~ sex, data = eulfs_small, cluster="country")
+```
+Problem: we do not have the correct intercept (44.69 instead of 37.81)
+
+```{r}
+# get_p_value()
+```
+
+```{r}
+
+```
+

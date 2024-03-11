@@ -30,25 +30,45 @@ library("magrittr")
 ```
 
 ```{r}
+### First step: the number of hours people usually work
 # Get the density estimate
-dens <- density(eulfs_small$hwactual, na.rm = TRUE)
+dens1 <- density(eulfs_small$hwusual, na.rm = TRUE)
 # Need to delete negative values for the number of working hours, as well as the values above 80 hours which are absent to the dataset
 # Need for x and y with the same length
-n <- length(dens[[1]])
-dens[[1]] <- dens[[1]][!(dens[[1]] < 0)]
-n_1 <- length(dens[[1]])
+n <- length(dens1[[1]])
+dens1[[1]] <- dens1[[1]][!(dens1[[1]] < 0)]
+n_1 <- length(dens1[[1]])
 loss_1 <- n - n_1 # number of first elements that were deleted
-dens[[1]] <- dens[[1]][!(dens[[1]] > 80)]
-loss_2 <- n_1 - length(dens[[1]]) # number of last elements that were deleted
-dens[[2]] <- tail(dens[[2]],-loss_1)
-dens[[2]] <- head(dens[[2]], -loss_2)
+dens1[[1]] <- dens1[[1]][!(dens1[[1]] > 80)]
+loss_2 <- n_1 - length(dens1[[1]]) # number of last elements that were deleted
+dens1[[2]] <- tail(dens1[[2]],-loss_1)
+dens1[[2]] <- head(dens1[[2]], -loss_2)
 # Plot y-values scaled by number of observations against x values
-plot <- plot(dens$x,length(eulfs_small$hwactual)*dens$y,type="l",xlab="Number of hours",ylab="Number of people", main = "Distribution of the numbers of hours")
-```
-Figure 1. \textbf{The vast majority of Europeans work between 35 and 40 hours a week but those who work the least represent a strong minority.} Histogram of the number of hours actually worked, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
 
-The peak of the distribution is clearly between 35 and 40 hours with more than 40000 people.
-But the second most important interval is between 0 and 5 hours.
+### Second step: the number of hours people wish
+# Very similar case
+# Get the density estimate
+dens2 <- density(eulfs_small$hwwish, na.rm = TRUE)
+# Need to delete negative values for the number of working hours, as well as the values above 80 hours which are absent to the dataset
+# Need for x and y with the same length
+n <- length(dens2[[1]])
+dens2[[1]] <- dens2[[1]][!(dens2[[1]] > 80)]
+loss <- n - length(dens2[[1]]) # number of last elements that were deleted
+dens2[[2]] <- head(dens2[[2]], -loss)
+
+### Plot
+# Plot y-values scaled by number of observations against x values
+par(mar = c(5.1, 5.1, 4.1, 2.1))
+plot <- plot(dens2$x, dens2$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours", las = 2)
+lines(dens1$x, dens1$y, col = "red")
+text(c(2,2),c(37,35),labels=c("Non-case","Case"))
+text(x = 2, y = 3, "This is my text")
+title(ylab = "Proportion of people", line = 4) # a readable y-label
+
+```
+Figure 1. \textbf{The vast majority of Europeans work between 35 and 40 hours a week but those who work the 20 and 60 hours represent both strong minorities.} Density of the number of hours usually worked (in red) and density of the number of hours people wish to work (in black), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+The peak of the distribution is clearly between 35 and 40 hours with more than half of the population.
 
 --------------------
 
