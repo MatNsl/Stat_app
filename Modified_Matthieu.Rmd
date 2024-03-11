@@ -30,6 +30,10 @@ library("magrittr")
 ```
 
 ```{r}
+install.packages("reshape2")
+```
+
+```{r}
 ### First step: the number of hours people usually work
 # Get the density estimate
 dens1 <- density(eulfs_small$hwusual, na.rm = TRUE)
@@ -66,7 +70,7 @@ text(x = 2, y = 3, "This is my text")
 title(ylab = "Proportion of people", line = 4) # a readable y-label
 
 ```
-Figure 1. \textbf{The vast majority of Europeans work between 35 and 40 hours a week but those who work the 20 and 60 hours represent both strong minorities.} Density of the number of hours usually worked (in red) and density of the number of hours people wish to work (in black), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+Figure 1. **The vast majority of Europeans work between 35 and 40 hours a week but those who work the 20 and 60 hours represent both strong minorities**. Density of the number of hours usually worked (in red) and density of the number of hours people wish to work (in black), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
 
 The peak of the distribution is clearly between 35 and 40 hours with more than half of the population.
 
@@ -79,7 +83,7 @@ hist(eulfs_small$hwwish, col = "skyblue",
      xlab = "Number of hours",
      ylab = "Number of people")
 ```
-Figure 2. \textbf{The vast majority of Europeans want to work between 35 and 40 hours a week.} Histogram of the number of hours people wish to work, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+Figure 2. **The vast majority of Europeans want to work between 35 and 40 hours a week**. Histogram of the number of hours people wish to work, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
 
 By contrast with the number of hours actually worked, there is almost no one who want to work less than 5 hours a week. Europeans tend to be unanimous on this issue.
 
@@ -96,7 +100,7 @@ boxplot(eulfs_small$hwactual ~ eulfs_small$sex,
 )
 
 ```
-Figure 3. \textbf{Although the median number of working hours is almost the same for each sex, the variability is much higher for women.} Boxplot of the number of hours actually worked depending on sex, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+Figure 3. **Although the median number of working hours is almost the same for each sex, the variability is much higher for women**. Boxplot of the number of hours actually worked depending on sex, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
 
 The variability is much higher for female workers: their first quartile that is close from the minimum of men.
 
@@ -114,11 +118,76 @@ p <- ggplot(frame, aes(x = refyear, na.rm = TRUE)) + geom_line(aes(y=Min)) + geo
 # Plotting the graph
 p
 ```
-Figure 4. \textbf{Those who work the least tend to have less and less working hours in recent years in Austria.} A few order statistics concerning Austria: the minimum, the three quartiles and the maximum of the number of hours actually worked in main job. From the 2014 release of the EU Labor Force Survey, own analyses.
+Figure 4. **Those who work the least tend to have less and less working hours in recent years in Austria**. A few order statistics concerning Austria: the minimum, the three quartiles and the maximum of the number of hours actually worked in main job. From the 2014 release of the EU Labor Force Survey, own analyses.
 
 We notice that all quartiles remain somewhat stable, except the first quartile.
 Indeed, the quarter of the population who work the least has less and less working hours.
 The number of hours dropped below 20 hours after 2010.
+
+```{r}
+# Convert the "year" and "country" variable to a factor for correct visualization in the histogram
+eulfs_small$year <- as.factor(eulfs_small$year)
+eulfs_small$country <- as.factor(eulfs_small$country)
+
+# Remove values 99 (not applicable) from the hwactual variable
+eulfs_small$hwusual <- na_if(eulfs_small$hwusual, 99)
+# Filter data to exclude NA values in the hwactual variable
+eulfs_filtered <- eulfs_small %>% filter(!is.na(hwusual))
+eulfs_filtered <- merge(eulfs_filtered, countries_code, by="country")
+
+median_by_country_year <- eulfs_filtered %>%
+  group_by(country_name, year) %>%
+  summarise(median_hwusual = median(hwusual, na.rm = TRUE))
+median_by_country_year <- median_by_country_year %>%
+  filter(country_name != "Malta")
+median_by_country_year$year <- as.numeric(as.character(median_by_country_year$year))
+
+# Same thing with the 1st decile
+dec1_by_country_year <- eulfs_filtered %>%
+  group_by(country_name, year) %>%
+  summarise(dec1_hwusual = quantile(hwusual, probs = 0.10, na.rm = TRUE))
+dec1_by_country_year <- dec1_by_country_year %>%
+  filter(country_name != "Malta")
+dec1_by_country_year$year <- as.numeric(as.character(dec1_by_country_year$year))
+
+# Same thing with the 9th decile
+dec9_by_country_year <- eulfs_filtered %>%
+  group_by(country_name, year) %>%
+  summarise(dec9_hwusual = quantile(hwusual, probs = 0.90, na.rm = TRUE))
+dec9_by_country_year <- dec9_by_country_year %>%
+  filter(country_name != "Malta")
+dec9_by_country_year$year <- as.numeric(as.character(dec9_by_country_year$year))
+
+# Into one single dataframe
+# frame <- bind_cols(median_by_country_year, dec1_by_country_year$dec1_hwusual, dec9_by_country_year$dec9_hwusual)
+# frame2 <- reshape2::melt(data = frame, id.vars = "year")
+frame_med_dec <- median_by_country_year %>% left_join(dec1_by_country_year, by = join_by(country_name, year)) %>% left_join(dec9_by_country_year, by = join_by(country_name, year))
+
+# frame2 <- reshape2::melt(data = frame, id.vars = c("year", "country_name"))
+
+frame_med_dec %>% ggplot(aes_string(x = frame_med_dec$year, group=1)) +
+  geom_line(aes(y = frame_med_dec$median_hwusual)) +
+  geom_line(aes(y = frame_med_dec$dec1_hwusual), color = "red") +
+  geom_line(aes(y = frame_med_dec$dec9_hwusual), color = "green") +
+  labs(
+    title = "Median, first and last deciles of the Number of Hours Worked per Week by Year",
+    x = "",
+    y = "Usual weekly hours in first job"
+  ) +
+  theme_minimal()+
+  ylim(0,65)+
+  facet_wrap(~country_name)+
+  scale_x_continuous(breaks = c(2000,2005,2010))+
+  theme(panel.grid = element_blank())
+
+```
+Figure 5. **Median weekly working hours are stable over time and across countries contrary to top and bottom deciles**. A few order statistics: the bottom decile, the median and the top decile of the number of hours usually worked in main job. 30 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+For each country, the situation stays somewhat stable over time, with a few exceptions: strong variation concerning the bottom decile in Hungary in particular and in other countries to a smaller extent.
+However, the situation varies a lot across countries. In some parts of Europe (Hungary, Lithuania, Luxembourg, Norway, Sweden), the top decile is at the same level as the median. In other parts of Europe (Bulgaria, Czech Republic, Slovak Republic), on the contrary, the bottom decile is at the same level as the median.
+We may also notice that the bottom decile is much more variable than the top one, across countries and over time. 
+We do not see any significant effect of the 2008 crisis.
+The Netherlands are an exception since its median is slightly decreasing, or at least more variable than any other median. Romania and Lithuania are particular cases: both have a very low bottom decile.
 
 ```{r fig.cap= ""}
 ##An histogram of the mean of the number of hours actually worked in main job by country  
@@ -158,7 +227,7 @@ ggplot(mean_by_country, aes(x = mean_hwactual, y = reorder(country_name, -mean_h
   theme_minimal()
 ```
 
-Figure 5. **Average weekly working hours varies considerably between countries.** Values range from 27.46 hours a week in the Netherlands to 40.10 in Greece, with an average for the 31 countries of **34.63** (represented by the red line on the graph).Arithmetic mean of usual working hours, 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+Figure 6. **Average weekly working hours varies considerably between countries.** Values range from 27.46 hours a week in the Netherlands to 40.10 in Greece, with an average for the 31 countries of **34.63** (represented by the red line on the graph).Arithmetic mean of usual working hours, 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
 
 ```{r}
 # Convert the "year" and "country" variable to a factor for correct visualization in the histogram
@@ -194,4 +263,4 @@ ggplot(mean_by_country_year, aes_string(x = "year", y = "mean_hwactual",group=1)
 ```
 
 
-Figure 6. **Average weekly working hours are declining over time**. Bar chart of average weekly working hours over time. Arithmetic mean of usual working hours, 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+Figure 7. **Average weekly working hours are declining over time**. Bar chart of average weekly working hours over time. Arithmetic mean of usual working hours, 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
