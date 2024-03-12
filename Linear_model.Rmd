@@ -36,13 +36,16 @@ install.packages("miceadds")
 ```
 
 ```{r}
-model <- miceadds::lm.cluster(formula = hwactual ~ sex, data = eulfs_small, cluster="country")
+model <- miceadds::lm.cluster(formula = hwactual ~ sex, cluster= eulfs_small$country, data = eulfs_small)
 ```
 Problem: we do not have the correct intercept (44.69 instead of 37.81)
 
 ```{r}
 # get_p_value()
+model2 <- lm(formula = hwactual ~ sex, data = eulfs_small)
 ```
+
+One problem to solve: not as much information with cluster as with a simple linear regression.
 
 ```{r}
 
