@@ -36,6 +36,10 @@ install.packages("miceadds")
 ```
 
 ```{r}
+install.packages("clusterSEs")
+```
+
+```{r}
 model <- miceadds::lm.cluster(formula = hwactual ~ sex, cluster= eulfs_small$country, data = eulfs_small)
 ```
 Problem: we do not have the correct intercept (44.69 instead of 37.81)
@@ -48,6 +52,31 @@ model2 <- lm(formula = hwactual ~ sex, data = eulfs_small)
 One problem to solve: not as much information with cluster as with a simple linear regression.
 
 ```{r}
-
+glm(formula = hwactual ~ sex, cluster= eulfs_small$country, data = eulfs_small)
 ```
+
+```{r}
+clusterSEs::cluster.bs.glm(
+      model,
+      eulfs_small,
+      eulfs_small$country)
+```
+
+
+```{r}
+install.packages("sandwich")
+```
+
+```{r}
+install.packages("lmtest")
+```
+
+```{r}
+reg <- lm(formula = hwactual ~ sex, data = eulfs_small)
+v_country = sandwich::vcovCL(reg, cluster = ~country)
+reg_year = lmtest::coeftest(reg, v_country)
+```
+
+
+
 
