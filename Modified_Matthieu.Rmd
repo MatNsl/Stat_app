@@ -70,6 +70,7 @@ title(ylab = "Proportion of people", line = 3) # a readable y-label
 Figure 1. **The vast majority of Europeans work between 35 and 40 hours a week but those who work the 20 and 60 hours represent both strong minorities**. Density of the number of hours usually worked (in red) and density of the number of hours people wish to work (in black), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
 
 The peak of the distribution is clearly between 35 and 40 hours with more than half of the population. However, it may be useful to zoom in to focus on the peak.
+
 --------------------
 
 ```{r}
@@ -185,6 +186,7 @@ Figure 3. **People find their number of working hours somewhat satisfactory**. D
 We notice that a great share of people who wish to work 40 hours usually work 40 hours already. Among those who wish but cannot work 40 hours (which are a minority), a small majority work slightly more, between 40 and 50 hours.
 
 But how many hours do people far from the norm wish to work?
+
 --------------------
 
 ```{r}
