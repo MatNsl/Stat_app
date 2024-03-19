@@ -412,7 +412,7 @@ dens1[[2]] <- head(dens1[[2]], -loss_2)
 ##### Plot -------
 # Plot y-values scaled by number of observations against x values
 par(mar = c(5.1, 5.1, 4.1, 2.1))
-plot <- plot(dens1$x, dens1$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours wished by workers", las = 2)
+plot <- plot(dens1$x, dens1$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours usually worked", las = 2)
 title(ylab = "Proportion of people", line = 3) # a readable y-label
 ```
 Figure 10. **On average, Romanians work as much as other Europeans, but a very strong minority does not work**. Density of the number of hours usually worked in Romania. From the 2014 release of the EU Labor Force Survey, own analyses.

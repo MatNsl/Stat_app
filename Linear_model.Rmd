@@ -117,3 +117,22 @@ F Statistic & 5,408.258$^{***}$ (df = 1; 109477) \\
 \end{tabular} 
 \end{table} 
 
+
+## A plot
+
+```{r}
+reg <- lm(formula = hwactual ~ age, data = eulfs_small)
+v_country = sandwich::vcovCL(reg, cluster = ~country)
+reg_year = lmtest::coeftest(reg, v_country)
+```
+
+```{r}
+plot(eulfs_small$hwactual, eulfs_small$hwusual)+
+  abline(lm(formula = hwactual ~ hwusual, data = eulfs_small))
+```
+
+```{r}
+
+```
+
+
