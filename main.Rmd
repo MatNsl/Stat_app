@@ -27,6 +27,9 @@ time.
 source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
 ```
 
+```{r}
+source(file="~/work/Stat_app/Countries/countries_code.R")
+```
 
 ```{r}
 #Packages :
@@ -36,84 +39,62 @@ install.packages("ggplot2")
 install.packages("labelled")
 install.packages("haven")
 install.packages("openxlsx")
+install.packages("reshape2")
 library("openxlsx")
 library("dplyr")
 library("ggplot2")
 library("labelled")
 library("haven")
-
+library("magrittr")
 
 ```
 
-```{r}
-
-eulfs_small |>
-  dplyr::mutate(country = haven::as_factor(country)) |>
-  head()
-
-
-path <- "~/work/Stat_app/Countries/countries_code_coordinates.xlsx"
-
-# Lire le fichier Excel
-countries_code <- read.xlsx(path)
-```
 # Descriptive statistics
 ##Means of the number of hours actually worked in main job per week 
 ###An histogram of the mean of the number of hours actually worked in main job per week, by year
 
 ```{r}
-##An histogram of the mean of the number of hours actually worked in main job by year 
-# Convert the "year" variable to a factor for correct visualization in the histogram
+# Convert the "year" and "country" variable to a factor for correct visualization in the histogram
 eulfs_small$year <- as.factor(eulfs_small$year)
+eulfs_small$country <- as.factor(eulfs_small$country)
 
 # Remove values 99 (not applicable) from the hwactual variable
 eulfs_small$hwactual <- na_if(eulfs_small$hwactual, 99)
-
 # Filter data to exclude NA values in the hwactual variable
 eulfs_filtered <- eulfs_small %>% filter(!is.na(hwactual))
+eulfs_filtered <- merge(eulfs_filtered, countries_code, by="country")
 
-# Calculate the mean of the number of hours worked for each year
-mean_by_year <- eulfs_filtered %>%
-  group_by(year) %>%
+mean_by_country_year <- eulfs_filtered %>%
+  group_by(country_name, year) %>%
   summarise(mean_hwactual = mean(hwactual, na.rm = TRUE))
+mean_by_country_year<- mean_by_country_year %>%
+  filter(country_name != "Malta")
+mean_by_country_year$year <- as.numeric(as.character(mean_by_country_year$year))
 
-# Create a histogram
-ggplot(mean_by_year, aes(x = year, y = mean_hwactual, fill = year)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Mean of the Number of Hours Worked per Year",
-       x = "Year",
-       y = "Mean of Hours Worked")
-```
-The mean of hours worked has slightly decreased between 1988 and 2013, going from around 37 to 33 hours.
-
-```{r}
-for (colonne in column_names) {
-  # Nettoyer le nom de la colonne
-  clean_colonne <- make.names(colonne)
-  
-  # Utiliser le nom de colonne nettoyé dans ggplot
-  ggplot(mean_by_country_year, aes_string(x = "year", y = clean_colonne)) +
-    geom_point() +
-    geom_line() +
-    labs(
-      title = "Mean of the Number of Hours Worked per Country",
-      x = "Year",
-      y = "Mean of Hours Worked per week"
-    ) +
-    theme_minimal()
-}
+ggplot(mean_by_country_year, aes_string(x = "year", y = "mean_hwactual",group=1)) +
+  geom_line() +
+  labs(
+    title = "Mean of the Number of Hours Worked per Week by Year",
+    x = "",
+    y = "Actual weekly hours in first job"
+  ) +
+  theme_minimal()+
+  ylim(25,45)+
+  facet_wrap(~country_name)+
+  scale_x_continuous(breaks = c(2000,2005,2010))+
+  theme(panel.grid = element_blank())
 
 ```
+Figure 1. **Average weekly working hours are declining over time**. Bar chart of average weekly working hours over time. Arithmetic mean of usual working hours, 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
 
 
 ###An histogram of the mean of the number of hours actually worked in main job per week, by country  
 
-```{r}
-
+```{r fig.cap= ""}
 ##An histogram of the mean of the number of hours actually worked in main job by country  
 
-# Convert the "countryw" variable to a factor for correct visualization in the bar plot
-
+# Convert the "country" variable to a factor for correct visualization in the bar plot
 eulfs_small$country <- as.factor(eulfs_small$country)
 
 # Remove values 99 (not applicable) from the hwactual variable
@@ -129,18 +110,25 @@ mean_by_country <- eulfs_filtered_country %>%
 # Merge mean_by_country with countries_code
 mean_by_country <- merge(mean_by_country, countries_code, by = "country")
 
-#this code will work when we'll have the right correspondance between the numeric value and the alpha.2.code (that is not the case with the actual data base)
 
-# Create a bar plot
-ggplot(mean_by_country, aes(x = country, y = mean_hwactual, fill=label)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Mean of the Number of Hours Worked per Country",
-       x = "Country",
-       y = "Mean of Hours Worked") +
+mean_value_EU <- mean(eulfs_filtered_country$hwactual)
+
+# Create a horizontal bar plot
+ggplot(mean_by_country, aes(x = mean_hwactual, y = reorder(country_name, -mean_hwactual))) +
+  
+  # Add horizontal bars to the plot
+  geom_col(width = 0.7) +
+  # Add labels and title to the plot
+  labs(
+    title = "Mean of the Number of Hours Worked per Week, per Country",
+    x = "Mean of Hours Worked per week",
+    y = "Country"
+  ) +
+  geom_vline(xintercept = mean_value_EU, linetype = "solid", color = "red") +
+  # Set the theme to minimal
   theme_minimal()
-
-
 ```
+
 
 
 Figure 2. **Average weekly working hours varie considerably between countries.** Values range from 27.46 hours a week in the Netherlands to 40.10 in Greece, with an average for the 31 countries of **34.63** (represented by the red line on the graph).Arithmetic mean of usual working hours, 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
@@ -149,26 +137,238 @@ Figure 2. **Average weekly working hours varie considerably between countries.**
 
 
 ```{r}
-# An histogramm about the number of hours actually worked in main job
-hist(eulfs_small$hwactual, col = "skyblue",
-     main = "Distribution of the numbers of hours",
-     xlab = "Number of hours",
-     ylab = "Number of people")
+### First step: the number of hours people usually work
+# Get the density estimate
+dens1 <- density(eulfs_small$hwusual, na.rm = TRUE)
+# Need to delete negative values for the number of working hours, as well as the values above 80 hours which are absent to the dataset
+# Need for x and y with the same length
+n <- length(dens1[[1]])
+dens1[[1]] <- dens1[[1]][!(dens1[[1]] < 0)]
+n_1 <- length(dens1[[1]])
+loss_1 <- n - n_1 # number of first elements that were deleted
+dens1[[1]] <- dens1[[1]][!(dens1[[1]] > 80)]
+loss_2 <- n_1 - length(dens1[[1]]) # number of last elements that were deleted
+dens1[[2]] <- tail(dens1[[2]],-loss_1)
+dens1[[2]] <- head(dens1[[2]], -loss_2)
 
+### Second step: the number of hours people wish
+# Very similar case
+# Get the density estimate
+dens2 <- density(eulfs_small$hwwish, na.rm = TRUE)
+# Need to delete negative values for the number of working hours, as well as the values above 80 hours which are absent to the dataset
+# Need for x and y with the same length
+n <- length(dens2[[1]])
+dens2[[1]] <- dens2[[1]][!(dens2[[1]] > 80)]
+loss <- n - length(dens2[[1]]) # number of last elements that were deleted
+dens2[[2]] <- head(dens2[[2]], -loss)
 
+### Plot
+# Plot y-values scaled by number of observations against x values
+par(mar = c(5.1, 5.1, 4.1, 2.1))
+plot <- plot(dens2$x, dens2$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours", las = 2)
+lines(dens1$x, dens1$y, col = "red")
+title(ylab = "Proportion of people", line = 3) # a readable y-label
 
 ```
-The peak of the distribution is clearly between 35 and 40 hours with more than 40000 people
-But the second most important interval is between 0 and 5 hours
+
+Figure 3. **The vast majority of Europeans work between 35 and 40 hours a week but those who work the 20 and 60 hours represent both strong minorities**. Density of the number of hours usually worked (in red) and density of the number of hours people wish to work (in black), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+The peak of the distribution is clearly between 35 and 40 hours with more than half of the population. However, it may be useful to zoom in to focus on the peak.
 
 ```{r}
-# An histogramm about the number of hours that the person would like to work in total in a week
-hist(eulfs_small$hwwish, col = "skyblue",
-     main = "Distribution of the numbers of hours people wish",
-     xlab = "Number of hours",
-     ylab = "Number of people")
+
+### First step: the number of hours people usually work
+# Get the density estimate
+dens1 <- density(eulfs_small$hwusual, na.rm = TRUE)
+# Need to delete some values for the number of working hours, to have a clearer graph
+# Need for x and y with the same length
+n <- length(dens1[[1]])
+dens1[[1]] <- dens1[[1]][!(dens1[[1]] < 30)]
+n_1 <- length(dens1[[1]])
+loss_1 <- n - n_1 # number of first elements that were deleted
+dens1[[1]] <- dens1[[1]][!(dens1[[1]] > 50)]
+loss_2 <- n_1 - length(dens1[[1]]) # number of last elements that were deleted
+dens1[[2]] <- tail(dens1[[2]],-loss_1)
+dens1[[2]] <- head(dens1[[2]], -loss_2)
+# Plot y-values scaled by number of observations against x values
+
+### Second step: the number of hours people wish
+# Very similar case
+# Get the density estimate
+dens2 <- density(eulfs_small$hwwish, na.rm = TRUE)
+# Need to delete negative values for the number of working hours, as well as the values above 80 hours which are absent to the dataset
+# Need for x and y with the same length
+n <- length(dens2[[1]])
+dens2[[1]] <- dens2[[1]][!(dens2[[1]] < 30)]
+n_1 <- length(dens2[[1]])
+loss_a <- n - n_1 
+dens2[[1]] <- dens2[[1]][!(dens2[[1]] > 50)]
+loss_b <- n_1 - length(dens2[[1]]) # number of last elements that were deleted
+dens2[[2]] <- tail(dens2[[2]], -loss_a)
+dens2[[2]] <- head(dens2[[2]], -loss_b)
+
+
+### Plot
+# Plot y-values scaled by number of observations against x values
+par(mar = c(5.1, 5.1, 4.1, 2.1))
+plot <- plot(dens2$x, dens2$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours", las = 2)
+lines(dens1$x, dens1$y, col = "red")
+text(c(2,2),c(37,35),labels=c("Non-case","Case"))
+text(x = 2, y = 3, "This is my text")
+title(ylab = "Proportion of people", line = 4) # a readable y-label
+
 ```
-A vast majority of people (more than 40000) wish to work between 35 and 40 hours
+
+Figure 4. **A majority of workers wish to conform to the norm**. Density of the number of hours usually worked (in red) and density of the number of hours people wish to work (in black), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+The vast majority of Europeans seem to work between 40 hours a week but those who wish to work 40 hours are also a majority. Who are the people who want to work 40 hours?
+
+
+```{r}
+
+### First step: the number of hours people usually work globally
+# Get the density estimate
+dens1 <- density(eulfs_small$hwusual, na.rm = TRUE)
+# Need to delete some values for the number of working hours, to have a clearer graph
+# Need for x and y with the same length
+n <- length(dens1[[1]])
+dens1[[1]] <- dens1[[1]][!(dens1[[1]] < 0)]
+n_1 <- length(dens1[[1]])
+loss_1 <- n - n_1 # number of first elements that were deleted
+dens1[[1]] <- dens1[[1]][!(dens1[[1]] > 80)]
+loss_2 <- n_1 - length(dens1[[1]]) # number of last elements that were deleted
+dens1[[2]] <- tail(dens1[[2]],-loss_1)
+dens1[[2]] <- head(dens1[[2]], -loss_2)
+
+# Let's focus on the people who wish to work 40 hours
+eulfs_40wish <- eulfs_small %>% filter(hwwish == 40)
+
+### Second step: the number of hours people usually work when they wish to work 40 hours
+# Get the density estimate
+dens3 <- density(eulfs_40wish$hwusual, na.rm = TRUE)
+# Need to delete negative values for the number of working hours, as well as the values above 80 hours which are absent to the dataset
+# Need for x and y with the same length
+n <- length(dens3[[1]])
+dens3[[1]] <- dens3[[1]][!(dens3[[1]] < 0)]
+n_1 <- length(dens3[[1]])
+loss_1 <- n - n_1 # number of first elements that were deleted
+dens3[[1]] <- dens3[[1]][!(dens3[[1]] > 80)]
+loss_2 <- n_1 - length(dens3[[1]]) # number of last elements that were deleted
+dens3[[2]] <- tail(dens3[[2]],-loss_1)
+dens3[[2]] <- head(dens3[[2]], -loss_2)
+
+# Let's focus on the people who wish to work 40 hours but who don't work 40
+eulfs_no40 <- eulfs_small %>% filter(hwwish == 40, hwusual != 40)
+
+### Second step: the number of hours people usually work when they wish to work 40 hours
+# Get the density estimate
+dens2 <- density(eulfs_no40$hwusual, na.rm = TRUE)
+# Need to delete negative values for the number of working hours, as well as the values above 80 hours which are absent to the dataset
+# Need for x and y with the same length
+n <- length(dens2[[1]])
+dens2[[1]] <- dens2[[1]][!(dens2[[1]] < 0)]
+n_1 <- length(dens2[[1]])
+loss_1 <- n - n_1 # number of first elements that were deleted
+dens2[[1]] <- dens2[[1]][!(dens2[[1]] > 80)]
+loss_2 <- n_1 - length(dens2[[1]]) # number of last elements that were deleted
+dens2[[2]] <- tail(dens2[[2]],-loss_1)
+dens2[[2]] <- head(dens2[[2]], -loss_2)
+
+### Plot
+# Plot y-values scaled by number of observations against x values
+par(mar = c(5.1, 5.1, 4.1, 2.1))
+plot <- plot(dens1$x, dens1$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours", las = 2)
+lines(dens3$x, dens3$y, col = "blue")
+lines(dens2$x, dens2$y, col = "red")
+title(ylab = "Proportion of people", line = 3) # a readable y-label
+
+```
+
+Figure 5. **People find their number of working hours somewhat satisfactory**. Density of the number of hours usually worked: in black for all workers combined, in blue for people who wish to work 40 hours in their main job and in red for people who wish to work 40 hours but usually do not. All years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+We notice that a great share of people who wish to work 40 hours usually work 40 hours already. Among those who wish but cannot work 40 hours (which are a minority), a small majority work slightly more, between 40 and 50 hours.
+
+But how many hours do people far from the norm wish to work?
+
+
+```{r}
+
+### First step: the number of hours people wish to work globally -------
+# Get the density estimate
+dens1 <- density(eulfs_small$hwwish, na.rm = TRUE)
+# Need to delete values under 0 and over 80
+# Need for x and y with the same length
+n <- length(dens1[[1]])
+dens1[[1]] <- dens1[[1]][!(dens1[[1]] < 0)] # elements < 0 deleted
+n_1 <- length(dens1[[1]]) # length of the new list
+loss_1 <- n - n_1 # number of first elements that were deleted
+dens1[[1]] <- dens1[[1]][!(dens1[[1]] > 80)]
+loss_2 <- n_1 - length(dens1[[1]]) # number of last elements that were deleted
+if (loss_1!=0){
+dens1[[2]] <- tail(dens1[[2]],-loss_1)
+}
+if (loss_2!=0){
+dens1[[2]] <- head(dens1[[2]], -loss_2)
+}
+
+### Second step: focus on the people who work less than 30 hours -------
+eulfs_30usual <- eulfs_small %>% filter(hwusual <= 30)
+
+# Get the density estimate
+dens2 <- density(eulfs_30usual$hwwish, na.rm = TRUE)
+# Need to delete values under 0 and over 80
+# Need for x and y with the same length
+n <- length(dens2[[1]])
+dens2[[1]] <- dens2[[1]][!(dens2[[1]] < 0)] # elements < 0 deleted
+n_1 <- length(dens2[[1]]) # length of the new list
+loss_1 <- n - n_1 # number of first elements that were deleted
+dens2[[1]] <- dens2[[1]][!(dens2[[1]] > 80)]
+loss_2 <- n_1 - length(dens2[[1]]) # number of last elements that were deleted
+if (loss_1!=0){
+dens2[[2]] <- tail(dens2[[2]],-loss_1)
+}
+if (loss_2!=0){
+dens2[[2]] <- head(dens2[[2]], -loss_2)
+}
+
+### Third step: focus on the people who work more than 50 hours -------
+eulfs_50usual <- eulfs_small %>% filter(hwusual >= 50)
+
+# Get the density estimate
+dens3 <- density(eulfs_50usual$hwwish, na.rm = TRUE)
+# Need to delete values under 0 and over 80
+# Need for x and y with the same length
+n <- length(dens3[[1]])
+dens3[[1]] <- dens3[[1]][!(dens3[[1]] < 0)] # elements < 0 deleted
+n_1 <- length(dens3[[1]]) # length of the new list
+loss_1 <- n - n_1 # number of first elements that were deleted
+dens3[[1]] <- dens3[[1]][!(dens3[[1]] > 80)]
+loss_2 <- n_1 - length(dens3[[1]]) # number of last elements that were deleted
+if (loss_1!=0){
+dens3[[2]] <- tail(dens3[[2]],-loss_1)
+}
+if (loss_2!=0){
+dens3[[2]] <- head(dens3[[2]], -loss_2)
+}
+```
+
+```{r}
+##### Plot -------
+# Plot y-values scaled by number of observations against x values
+par(mar = c(5.1, 5.1, 4.1, 2.1))
+plot <- plot(dens1$x, dens1$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours wished by workers", las = 2)
+lines(dens2$x, dens2$y, col = "red")
+lines(dens3$x, dens3$y, col = "blue")
+title(ylab = "Proportion of people", line = 3) # a readable y-label
+text(0.6, " Black: Global results \n Red: Under 30 hours \n Blue: Over 50 hours", adj = 0)
+# Aesthetics could be better...
+```
+
+
+Figure 6. **People whose working hours are significantly far from the mean have different preferences compared with average workers**. Density of the number of hours wish to work: in black for all workers combined, in red for people who usually work less than 30 hours in their main job and in blue for people who work more than 50 hours in their main job, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+We may conclude by saying that workers face constraints that lead them to choose more (respectively less) hours than the average, apart from the number of hours they are offered.
+For instance, looking on children or on the elderly may partly explain the fact that people who work less than 30 hours in main job almost never want to work more than 40.
 
 
 
@@ -177,63 +377,138 @@ Comparaison between men and women
 -Comparison between men and women concerning the number of hours actually worked in main job 
 
 ```{r}
-# Comparison between men and women concerning the number of hours actually worked in main job
+# Boxplot to compare men and women concerning the number of hours actually worked in main job
 boxplot(eulfs_small$hwactual ~ eulfs_small$sex,
-        xlab = "Sex",
+        xlab = " ",
         ylab = "Number of hours",
         names = c("Men", "Women"),
-        col = c("blue", "red") 
+        col = c("blue", "red"),
+        main = "Actual weekly working hours: men and women"
 )
 
 ```
-Both medians are not so far away from each other
-But the variability is much higher for women with a first quartile that is close from the minimum of men.
 
+Figure 6. **Although the median number of working hours is almost the same for each sex, the variability is much higher for women**. Boxplot of the number of hours actually worked depending on sex, all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
 
--Comparison between men and women concerning the number of hours actually worked in main job per week
-
-```{r}
-# Comparison between men and women concerning the number of hours actually worked in main job per week 
-boxplot(eulfs_small$hwusual ~ eulfs_small$sex,
-        xlab = "Sex",
-        ylab = "Number of hours",
-        names = c("Men", "Women"),
-        col = c("blue", "red")  
-)
-```
-Here, the medians are still not so far away from each other.
-But the variability is also much higher for women.
-
+The variability is much higher for female workers: their first quartile that is close from the minimum of men.
 
 ```{r}
-# AVAILBLE : Availability to start working immediately or to work more
-eulfs_small$availble <- as.numeric(as.character(eulfs_small$availble), na.rm = TRUE)
+# Convert the "year" and "country" variable to a factor for correct visualization in the histogram
+eulfs_small$year <- as.factor(eulfs_small$year)
+eulfs_small$country <- as.factor(eulfs_small$country)
 
-# An histogramm about the availability to start working immediately or to work more
-percentages <- table(eulfs_small$availble) / length(eulfs_small$availble) * 100
+# Remove values 99 (not applicable) from the hwactual variable
+eulfs_small$hwusual <- na_if(eulfs_small$hwusual, 99)
+# Filter data to exclude NA values in the hwactual variable
+eulfs_filtered <- eulfs_small %>% filter(!is.na(hwusual))
+eulfs_filtered <- merge(eulfs_filtered, countries_code, by="country")
 
-# Barplot with pourcentages
-barplot(percentages, 
-        col = "skyblue",
-        main = "Availability to start working immediately \nor to work more (within two weeks)",
-        ylab = "Percentage of people",
-        names.arg = c("Yes", "No"),
-        ylim = c(0, max(percentages) + 2))
-# Add percentages
-text(c(1, 2), percentages, sprintf("%.1f%%", percentages), pos = 3, offset = 0.5)
+median_by_country_year <- eulfs_filtered %>%
+  group_by(country_name, year) %>%
+  summarise(median_hwusual = median(hwusual, na.rm = TRUE))
+median_by_country_year <- median_by_country_year %>%
+  filter(country_name != "Malta")
+median_by_country_year$year <- as.numeric(as.character(median_by_country_year$year))
+
+# Same thing with the 1st decile
+dec1_by_country_year <- eulfs_filtered %>%
+  group_by(country_name, year) %>%
+  summarise(dec1_hwusual = quantile(hwusual, probs = 0.10, na.rm = TRUE))
+dec1_by_country_year <- dec1_by_country_year %>%
+  filter(country_name != "Malta")
+dec1_by_country_year$year <- as.numeric(as.character(dec1_by_country_year$year))
+
+# Same thing with the 9th decile
+dec9_by_country_year <- eulfs_filtered %>%
+  group_by(country_name, year) %>%
+  summarise(dec9_hwusual = quantile(hwusual, probs = 0.90, na.rm = TRUE))
+dec9_by_country_year <- dec9_by_country_year %>%
+  filter(country_name != "Malta")
+dec9_by_country_year$year <- as.numeric(as.character(dec9_by_country_year$year))
+
+# Into one single dataframe
+frame_med_dec <- median_by_country_year %>% left_join(dec1_by_country_year, by = join_by(country_name, year)) %>% left_join(dec9_by_country_year, by = join_by(country_name, year))
+
+frame_med_dec %>% ggplot(aes_string(x = frame_med_dec$year, group=1)) +
+  geom_line(aes(y = frame_med_dec$median_hwusual)) +
+  geom_line(aes(y = frame_med_dec$dec1_hwusual), color = "red") +
+  geom_line(aes(y = frame_med_dec$dec9_hwusual), color = "green") +
+  labs(
+    title = "Median, first and last deciles of the Number of Hours Worked per Week by Year",
+    x = "",
+    y = "Usual weekly hours in first job"
+  ) +
+  theme_minimal()+
+  ylim(0,65)+
+  facet_wrap(~country_name)+
+  scale_x_continuous(breaks = c(2000,2005,2010))+
+  theme(panel.grid = element_blank())
+
 ```
-We note that we have a lot of non-respondants.They must be people who don't suffer their working hours (both ways).
 
-We do not know yet how to identify countries.
-However, we may analyse data for a specific country, for instance "number 3"
+Figure 7. **Median weekly working hours are stable over time and across countries contrary to top and bottom deciles**. A few order statistics: the bottom decile, the median and the top decile of the number of hours usually worked in main job. 30 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+For each country, the situation stays somewhat stable over time, with a few exceptions: strong variation concerning the bottom decile in Hungary in particular and in other countries to a smaller extent.
+However, the situation varies a lot across countries. In some parts of Europe (Hungary, Lithuania, Luxembourg, Norway, Sweden), the top decile is at the same level as the median. In other parts of Europe (Bulgaria, Czech Republic, Slovak Republic), on the contrary, the bottom decile is at the same level as the median.
+We may also notice that the bottom decile is much more variable than the top one, across countries and over time. 
+We do not see any significant effect of the 2008 crisis.
+The Netherlands are an exception since its median is slightly decreasing, or at least more variable than any other median. Romania and Lithuania are particular cases: both have a very low bottom decile.
+
+We seem to have a problem with Romania: top and bottom deciles are much more stable than in other countries.
+
+```{r fig.cap= ""}
+# Starting by creating a smaller base to work with
+eulfs_RO <- eulfs_small %>% filter(country == 27) %>% select(hwusual, refyear)
+# Indicating what statistics we want to appear on the plot
+frame <- eulfs_RO %>% group_by(refyear, .drop = NA) %>% summarise(Min = min(hwusual, na.rm = TRUE), Max = max(hwusual, na.rm = TRUE), Median = median(hwusual, na.rm = TRUE), quant1 = quantile(hwusual, probs = 0.25, na.rm = TRUE), quant2 = quantile(hwusual, probs = 0.75, na.rm = TRUE), dec1 = quantile(hwusual, probs = 0.10, na.rm = TRUE), dec9 = quantile(hwusual, probs = 0.90, na.rm = TRUE), dec05 = quantile(hwusual, probs = 0.05, na.rm = TRUE), dec95 = quantile(hwusual, probs = 0.95, na.rm = TRUE))
+# Creating the graph
+p <- ggplot(frame, aes(x = refyear, na.rm = TRUE)) + geom_line(aes(y=Min)) + geom_line(aes(y=Max), color = "green") + geom_line(aes(y=Median), color = "darkred") + geom_line(aes(y=quant1), color = "blue") + geom_line(aes(y=quant2), color = "red") + geom_line(aes(y=dec1), color = "skyblue") + geom_line(aes(y=dec9), color = "skyblue") + geom_line(aes(y=dec05), color = "purple") + geom_line(aes(y=dec95), color = "purple") + labs(title = "Actual weekly working hours in 1st job in Romania", x=" ", y="Number of weekly working hours")
+# Plotting the graph
+p
+```
+
+Figure 8. **In Romania, the number of working hours tends to converge through time, except for the 10% of people who work the least**. A few order statistics concerning Romania: the minimum, a few quantiles (0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95) and the maximum of the number of hours actually worked in main job. From the 2014 release of the EU Labor Force Survey, own analyses.
+
 ```{r}
-# We start by creating a smaller base to work with
-eulfs_pays3 <- eulfs_small %>% filter(countryw == 3) %>% select(hwactual, refyear)
-# We indicate what statistics we want to appear on the plot
-frame <- eulfs_pays3 %>% group_by(refyear, .drop = NA) %>% summarise(Min = min(hwactual, na.rm = TRUE), Max = max(hwactual, na.rm = TRUE), Median = median(hwactual, na.rm = TRUE), quant1 = quantile(hwactual, probs = 0.25, na.rm = TRUE), quant2 = quantile(hwactual, probs = 0.75, na.rm = TRUE))
-ggplot(frame, aes(x = refyear, na.rm = TRUE)) + geom_line(aes(y=Min)) + geom_line(aes(y=Max)) + geom_line(aes(y=Median), color = "darkred") + geom_line(aes(y=quant1), color = "green") + geom_line(aes(y=quant2), color = "green") 
 
+# Get the density estimate
+dens1 <- density(eulfs_RO$hwusual, na.rm = TRUE)
+# Need to delete negative values for the number of working hours, as well as the values above 80 hours which are absent to the dataset
+# Need for x and y with the same length
+n <- length(dens1[[1]])
+dens1[[1]] <- dens1[[1]][!(dens1[[1]] < 0)]
+n_1 <- length(dens1[[1]])
+loss_1 <- n - n_1 # number of first elements that were deleted
+dens1[[1]] <- dens1[[1]][!(dens1[[1]] > 80)]
+loss_2 <- n_1 - length(dens1[[1]]) # number of last elements that were deleted
+dens1[[2]] <- tail(dens1[[2]],-loss_1)
+dens1[[2]] <- head(dens1[[2]], -loss_2)
+
+##### Plot -------
+# Plot y-values scaled by number of observations against x values
+par(mar = c(5.1, 5.1, 4.1, 2.1))
+plot <- plot(dens1$x, dens1$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours usually worked", las = 2)
+title(ylab = "Proportion of people", line = 3) # a readable y-label
 ```
+
+Figure 9. **On average, Romanians work as much as other Europeans, but a very strong minority does not work**. Density of the number of hours usually worked in Romania. From the 2014 release of the EU Labor Force Survey, own analyses.
+
+One explanation is the high rate of emigration: one person finds work in another country and becomes the bread-winner of a whole family. For instance, a couple made up of a male immigrant and a housewife.
+
+We may analyse data for an other specific country, for instance Austria.
+
+```{r fig.cap= ""}
+# Starting by creating a smaller base to work with
+eulfs_AT <- eulfs_small %>% filter(country == 1) %>% select(hwactual, refyear)
+# Indicating what statistics we want to appear on the plot
+frame <- eulfs_AT %>% group_by(refyear, .drop = NA) %>% summarise(Min = min(hwactual, na.rm = TRUE), Max = max(hwactual, na.rm = TRUE), Median = median(hwactual, na.rm = TRUE), quant1 = quantile(hwactual, probs = 0.25, na.rm = TRUE), quant2 = quantile(hwactual, probs = 0.75, na.rm = TRUE))
+# Creating the graph
+p <- ggplot(frame, aes(x = refyear, na.rm = TRUE)) + geom_line(aes(y=Min)) + geom_line(aes(y=Max), color = "green") + geom_line(aes(y=Median), color = "darkred") + geom_line(aes(y=quant1), color = "blue") + geom_line(aes(y=quant2), color = "red") + labs(title = "Actual weekly working hours in 1st job in Austria", x=" ", y="Number of weekly working hours")
+# Plotting the graph
+p
+```
+
+Figure 10. **Those who work the least tend to have less and less working hours in recent years in Austria**. A few order statistics concerning Austria: the minimum, the three quartiles and the maximum of the number of hours actually worked in main job. From the 2014 release of the EU Labor Force Survey, own analyses.
 
 We notice that all quartiles remain somewhat stable, except the first quartile.
 Indeed, the quarter of the population who work the least has less and less working hours.
