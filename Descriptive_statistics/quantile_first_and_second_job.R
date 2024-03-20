@@ -55,12 +55,12 @@ g<-
   labs(
     title = "",
     x = "",
-    y = "Actual weekly hours in first job",
+    y = "Actual weekly hours worked",
     color = NULL
   ) +
   theme_minimal()+
   facet_wrap(~country_name)+
-  scale_x_continuous(breaks = c(2000,2005,2010,2013))+
+  scale_x_continuous(breaks = c(2000,2005,2010))+
   theme(panel.grid = element_blank())
 
 print(g)
