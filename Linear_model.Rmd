@@ -1,0 +1,138 @@
+---
+title: "Linear model"
+output: html_document
+date: "2024-03-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
+```
+
+```{r}
+source(file="~/work/Stat_app/Countries/countries_code.R")
+```
+
+```{r}
+#Packages :
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("labelled")
+library("dplyr")
+library("ggplot2")
+library("labelled")
+
+# Add this package for %>%
+library("magrittr")
+```
+
+Source:
+https://search.r-project.org/CRAN/refmans/miceadds/html/lm.cluster.html
+```{r}
+# install.packages("miceadds")
+```
+
+```{r}
+# install.packages("clusterSEs")
+```
+
+```{r}
+# model <- miceadds::lm.cluster(formula = hwactual ~ sex, cluster= eulfs_small$country, data = eulfs_small)
+```
+Problem: we do not have the correct intercept (44.69 instead of 37.81)
+
+```{r}
+# get_p_value()
+# model2 <- lm(formula = hwactual ~ sex, data = eulfs_small)
+```
+
+One problem to solve: not as much information with cluster as with a simple linear regression.
+
+```{r}
+# glm(formula = hwactual ~ sex, cluster= eulfs_small$country, data = eulfs_small)
+```
+
+```{r}
+
+# clusterSEs::cluster.bs.glm(
+#      model,
+#      eulfs_small,
+#      eulfs_small$country)
+      
+```
+
+
+```{r}
+install.packages("sandwich")
+```
+
+```{r}
+install.packages("lmtest")
+```
+
+```{r}
+install.packages("stargazer")
+```
+
+```{r}
+reg <- lm(formula = hwactual ~ sex, data = eulfs_small)
+v_country = sandwich::vcovCL(reg, cluster = ~country)
+reg_year = lmtest::coeftest(reg, v_country)
+```
+
+```{r}
+stargazer::stargazer(reg, title = "Regression on actual working hours with sex, clustering by countries")
+```
+
+% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+% Date and time: Sun, Mar 17, 2024 - 12:21:32 PM
+\begin{table}[!htbp] \centering 
+  \caption{Regression on actual working hours with sex, clustering by countries} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{1}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-2} 
+\\[-1.8ex] & hwactual \\ 
+\hline \\[-1.8ex] 
+ sex & $-$6.884$^{***}$ \\ 
+  & (0.094) \\ 
+  & \\ 
+ Constant & 44.693$^{***}$ \\ 
+  & (0.145) \\ 
+  & \\ 
+\hline \\[-1.8ex] 
+Observations & 109,479 \\ 
+R$^{2}$ & 0.047 \\ 
+Adjusted R$^{2}$ & 0.047 \\ 
+Residual Std. Error & 15.443 (df = 109477) \\ 
+F Statistic & 5,408.258$^{***}$ (df = 1; 109477) \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table} 
+
+
+## A plot
+
+```{r}
+reg <- lm(formula = hwactual ~ age, data = eulfs_small)
+v_country = sandwich::vcovCL(reg, cluster = ~country)
+reg_year = lmtest::coeftest(reg, v_country)
+```
+
+```{r}
+plot(eulfs_small$hwactual, eulfs_small$hwusual)+
+  abline(lm(formula = hwactual ~ hwusual, data = eulfs_small))
+```
+
+```{r}
+
+```
+
+
