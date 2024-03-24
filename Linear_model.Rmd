@@ -1,6 +1,8 @@
 ---
 title: "Linear model"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 date: "2024-03-11"
 ---
 
@@ -10,10 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
-```
-
-```{r}
-source(file="~/work/Stat_app/Countries/countries_code.R")
 ```
 
 ```{r}
@@ -32,38 +30,24 @@ library("magrittr")
 Source:
 https://search.r-project.org/CRAN/refmans/miceadds/html/lm.cluster.html
 ```{r}
+### Failed attempts
 # install.packages("miceadds")
-```
-
-```{r}
 # install.packages("clusterSEs")
-```
-
-```{r}
 # model <- miceadds::lm.cluster(formula = hwactual ~ sex, cluster= eulfs_small$country, data = eulfs_small)
-```
-Problem: we do not have the correct intercept (44.69 instead of 37.81)
+## Problem: we do not have the correct intercept (44.69 instead of 37.81)
 
-```{r}
 # get_p_value()
 # model2 <- lm(formula = hwactual ~ sex, data = eulfs_small)
-```
+## One problem to solve: not as much information with cluster as with a simple linear regression.
 
-One problem to solve: not as much information with cluster as with a simple linear regression.
-
-```{r}
 # glm(formula = hwactual ~ sex, cluster= eulfs_small$country, data = eulfs_small)
-```
 
-```{r}
 
 # clusterSEs::cluster.bs.glm(
 #      model,
 #      eulfs_small,
 #      eulfs_small$country)
-      
 ```
-
 
 ```{r}
 install.packages("sandwich")
@@ -84,7 +68,7 @@ reg_year = lmtest::coeftest(reg, v_country)
 ```
 
 ```{r}
-stargazer::stargazer(reg, title = "Regression on actual working hours with sex, clustering by countries")
+stargazer::stargazer(reg, title = "Actual working hours regressed on sex, standard errors account for clustering by countries", column.labels = c("Number of hours actually worked in main job"), covariate.labels = c("Sex (1 for male and 2 for female)", "Constant"), model.names = TRUE, keep.stat="n", omit.stat = c("rsq", "adj.rsq","ser","f"))
 ```
 
 % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
@@ -134,5 +118,27 @@ plot(eulfs_small$hwactual, eulfs_small$hwusual)+
 ```{r}
 
 ```
+
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+      
+```
+
 
 
