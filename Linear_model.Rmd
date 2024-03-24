@@ -69,12 +69,12 @@ reg_year = lmtest::coeftest(reg, v_country)
 
 ```{r}
 stargazer::stargazer(reg, title = "Actual working hours regressed on sex, standard errors account for clustering by countries", column.labels = c("Number of hours actually worked in main job"), covariate.labels = c("Sex (1 for male and 2 for female)", "Constant"), model.names = TRUE, keep.stat="n", omit.stat = c("rsq", "adj.rsq","ser","f"))
-```
 
+```
 % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-% Date and time: Sun, Mar 17, 2024 - 12:21:32 PM
+% Date and time: Sun, Mar 24, 2024 - 05:22:43 PM
 \begin{table}[!htbp] \centering 
-  \caption{Regression on actual working hours with sex, clustering by countries} 
+  \caption{Actual working hours regressed on sex, standard errors account for clustering by countries} 
   \label{} 
 \begin{tabular}{@{\extracolsep{5pt}}lc} 
 \\[-1.8ex]\hline 
@@ -82,8 +82,10 @@ stargazer::stargazer(reg, title = "Actual working hours regressed on sex, standa
  & \multicolumn{1}{c}{\textit{Dependent variable:}} \\ 
 \cline{2-2} 
 \\[-1.8ex] & hwactual \\ 
+\\[-1.8ex] & \textit{OLS} \\ 
+ & Number of hours actually worked in main job \\ 
 \hline \\[-1.8ex] 
- sex & $-$6.884$^{***}$ \\ 
+ Sex (1 for male and 2 for female) & $-$6.884$^{***}$ \\ 
   & (0.094) \\ 
   & \\ 
  Constant & 44.693$^{***}$ \\ 
@@ -91,54 +93,8 @@ stargazer::stargazer(reg, title = "Actual working hours regressed on sex, standa
   & \\ 
 \hline \\[-1.8ex] 
 Observations & 109,479 \\ 
-R$^{2}$ & 0.047 \\ 
-Adjusted R$^{2}$ & 0.047 \\ 
-Residual Std. Error & 15.443 (df = 109477) \\ 
-F Statistic & 5,408.258$^{***}$ (df = 1; 109477) \\ 
 \hline 
 \hline \\[-1.8ex] 
 \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
 \end{tabular} 
-\end{table} 
-
-
-## A plot
-
-```{r}
-reg <- lm(formula = hwactual ~ age, data = eulfs_small)
-v_country = sandwich::vcovCL(reg, cluster = ~country)
-reg_year = lmtest::coeftest(reg, v_country)
-```
-
-```{r}
-plot(eulfs_small$hwactual, eulfs_small$hwusual)+
-  abline(lm(formula = hwactual ~ hwusual, data = eulfs_small))
-```
-
-```{r}
-
-```
-
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-      
-```
-
-
-
+\end{table}
