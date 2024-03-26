@@ -1,3 +1,6 @@
+#cleaning variables and graphs
+rm(list=objects())
+graphics.off() 
 
 
 source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
@@ -14,11 +17,6 @@ library(quantreg)
 
 # Add this package for %>%
 library("magrittr")
-
-
-# Install and load the quantreg package if not already installed
-
-library(quantreg)
 
 
 # Fit conditional quantile regression
@@ -65,12 +63,13 @@ for (tau in tau_values) {
 
 #For a single value for tau, selectioning the years 1998 and 2013
 
+data_filtered <- eulfs_small[!is.na(eulfs_small$hwactual), ]
 
 
 # Loop to fit the models for each year
 for (year in c(1998, 2013)) {
   # Filter data for the specific year
-  data_year <- subset(data_filtered, year == year)
+  data_year <- subset(eulfs_small, year == year)
   
   # Fit the models
  regyear <- rq(hwactual ~ sex, data = data_year, tau = 0.3) #add robustness ?
@@ -83,3 +82,32 @@ for (year in c(1998, 2013)) {
     cat("\n")
 }
 
+
+# For a single value for tau
+tau <- 0.3
+
+# List to store the models
+reg_models <- list()
+
+# Loop to fit the models for each year
+for (year in c(1998, 2013)) {
+  # Filter data for the specific year
+  data_year <- subset(eulfs_small, year == year)
+  
+  # Fit the models
+  reg_model <- rq(hwactual ~ sex, data = data_year, tau = tau)
+  
+  # Store the model in the list
+  reg_models[[as.character(year)]] <- reg_model
+}
+
+# Print the results for each year
+for (year in c(1998, 2013)) {
+  cat("Year =", year, "\n")
+  summary(reg_models[[as.character(year)]])
+  cat("\n")
+  
+}
+
+
+print(reg_models, digits = 4) 
