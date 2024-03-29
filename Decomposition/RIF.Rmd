@@ -1,0 +1,71 @@
+---
+title: "Recentered Influence Functions"
+output: pdf_document
+date: "2024-03-29"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("labelled")
+install.packages("dineq") # specific package for RIF
+library("dplyr")
+library("ggplot2")
+library("labelled")
+```
+
+```{r}
+source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
+```
+
+```{r}
+eulfs_small$hwusual <- na_if(eulfs_small$hwusual, 99)
+```
+
+Source:
+https://search.r-project.org/CRAN/refmans/dineq/html/00Index.html
+
+## Recentered influence function of the 1st quartile (25th quantile)
+
+```{r}
+rif_q25 <- dineq::rif(x=eulfs_small$hwusual, weights=NULL, method="quantile", quantile=0.25)
+```
+
+rif_q25 is a vector with as many components as observations in eulfs_small
+Each component corresponds to a particular individual’s influence on the distributional statistic
+
+## Regression with some RIF
+
+```{r}
+# RIF Regression with the same distributional statistic, namely the 25th quantile
+rifr_q <- dineq::rifr(hwusual ~ sex, eulfs_small, weights = NULL, method = "quantile", quantile = 0.25, kernel = "gaussian")
+```
+
+```{r}
+rifr_q[["Coef"]]
+```
+
+```{r}
+plot(eulfs_small$hwusual, eulfs_small$sex)+
+  abline(rifr_q)
+# Aucun interet
+```
+
+```{r}
+
+```
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
