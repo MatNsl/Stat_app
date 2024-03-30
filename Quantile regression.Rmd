@@ -1,8 +1,10 @@
 ---
 title: "Quantile regression"
 author: "Gabrielle Durieu"
-output: html_document
 date: "2024-03-25"
+output:
+  pdf_document: default
+  html_document: default
 ---
   
 ```{r setup, include=FALSE}
@@ -32,6 +34,20 @@ library("magrittr")
 ```{r}
 # Fit conditional quantile regression
 fit_conditional <- rq(hwactual ~ sex, data = eulfs_small, tau = 0.8) #add robustness ?
+#I took the variable sex as an exemple, just to see
+# Values seem all meaningless for tau = 0.9 ...
+
+# Summary of the model with additional information
+summary_conditional <- summary.rq(fit_conditional)
+
+# Print summary including confidence intervals and p-values
+print(summary_conditional, digits = 4) 
+# no IC, F stat, R-squared ... don't know yet how to make them appear
+```
+
+```{r}
+# Fit conditional quantile regression
+fit_conditional <- rq(hwactual ~ sex, data = eulfs_small, tau = 0.2) #add robustness ?
 #I took the variable sex as an exemple, just to see
 # Values seem all meaningless for tau = 0.9 ...
 
