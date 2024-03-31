@@ -1,0 +1,121 @@
+---
+title: "Quantile regression"
+author: "Gabrielle Durieu"
+date: "2024-03-25"
+output:
+  pdf_document: default
+  html_document: default
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo = F, message = F, warning = F}
+source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
+```
+
+```{r echo = F, message = F, warning = F}
+#Packages :
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("labelled")
+install.packages("quantreg") # regression
+install.packages("lmtest") # statistic tests
+install.packages("stargazer") # tables
+install.packages("xtable")
+
+library("dplyr")
+library("ggplot2")
+library("labelled")
+library("quantreg")
+library("stargazer")
+library("xtable")
+library("magrittr") # for %>%
+
+```
+
+
+```{r}
+#I took the variable sex as an exemple, just to see
+```
+
+```{r}
+quantiles <- seq(0.1, 0.9, by = 0.1)
+
+# Initialiser une liste pour stocker les résultats
+results <- list()
+
+# Boucle sur chaque quantile
+for (q in quantiles) {
+  # Ajuster le modèle de régression quantile
+  rq_model <- rq(hwactual ~ sex, data = eulfs_small, tau = q)
+  
+  # Stocker les résultats dans la liste
+  results[[as.character(q)]] <- summary(rq_model)
+}
+
+# Afficher les résultats pour chaque quantile
+for (q in quantiles) {
+  cat("Quantile:", q, "\n")
+  print(results[[as.character(q)]])
+}
+
+```
+
+
+```{r}
+#trying for make the tables under latex
+#quantiles <- seq(0.1, 0.9, by = 0.1)
+
+# Initialiser une liste pour stocker les résultats
+#results <- list()
+
+# Boucle sur chaque quantile
+#for (q in quantiles) {
+  # Ajuster le modèle de régression quantile
+  #rq_model <- rq(hwactual ~ sex, data = eulfs_small, tau = q)
+  
+  # Stocker les résultats dans la liste
+  #results[[as.character(q)]] <- summary(rq_model)
+#}
+
+# Créer un objet xtable pour le tableau LaTeX
+#table_data <- NULL
+#for (q in quantiles) {
+  #table_data <- rbind(table_data, c(q, results[[as.character(q)]]$coef[,1]))
+#}
+#colnames(table_data) <- c("Quantile", "Intercept", "sex")
+
+# Convertir en objet xtable
+#xtable_data <- xtable(table_data)
+
+# Afficher le code LaTeX du tableau
+#print(xtable_data, include.rownames = FALSE)
+```
+
+
+```{r}
+# For a single value for tau
+tau <- 0.3
+
+# List to store the models
+reg_models <- list()
+
+# Loop to fit the models for each year
+for (year in c(1998, 2013)) {
+  # Filter data for the specific year
+  data_year <- subset(eulfs_small, year == year)
+  
+  # Fit the models
+  reg_model <- rq(hwactual ~ sex, data = data_year, tau = tau)
+  
+  # Store the model in the list
+  reg_models[[as.character(year)]] <- reg_model
+}
+
+# Print the results for each year
+print(reg_models, digits = 4) 
+
+```
+
