@@ -63,12 +63,9 @@ for (q in quantiles) {
 
 ```
 ```{r}
-# Load the xtable library
-library(xtable)
-
 # Regressions for a given year
 quantiles <- seq(0.1, 0.9, by = 0.1)
-eulfs_small_year <- subset(eulfs_small, refyear == 2013)
+eulfs_small_year <- subset(eulfs_small, refyear == 1998)
 
 # Initialize a list to store the results
 results <- list()
@@ -97,33 +94,5 @@ xtable_data
 
 ```
 
-
-```{r}
-#trying for make the tables in latex
-#quantiles <- seq(0.1, 0.9, by = 0.1)
-
-#results <- list()
-
-#for (q in quantiles) {
-  # Ajust the quantile reg model
-  #rq_model <- rq(hwactual ~ sex, data = eulfs_small, tau = q)
-  
-  # Stock the results in the list
-  #results[[as.character(q)]] <- summary(rq_model)
-#}
-
-# Create an xtable (LaTeX)
-#table_data <- NULL
-#for (q in quantiles) {
-  #table_data <- rbind(table_data, c(q, results[[as.character(q)]]$coef[,1]))
-#}
-#colnames(table_data) <- c("Quantile", "Intercept", "sex")
-
-# Convert in xtable
-#xtable_data <- xtable(table_data)
-
-# LaTeX code for the table
-#print(xtable_data, include.rownames = FALSE)
-```
 
 
