@@ -93,7 +93,7 @@ colnames(table_data) <- c("Quantile", "Intercept", "sex")
 xtable_data <- xtable(table_data)
 
 # Print the LaTeX code for the table
-print(xtable_data, include.rownames = FALSE)
+xtable_data
 
 ```
 
