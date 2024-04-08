@@ -117,7 +117,14 @@ Figure 2 is consistent with the results of RIF regression. Indeed, those who wor
 ```{r}
 eulfs_small_b <- eulfs_small %>% filter(hwusual == 20) %>% select(age)
 n_tot <- nrow(eulfs_small_b)
-hist((eulfs_small_b$age)/n_tot)
+hist((eulfs_small_b$age)/(n_tot))
+# No sense! Rather look at arguments of hist
+# cf below
+```
+
+```{r}
+eulfs_small_b <- eulfs_small %>% filter(hwusual == 40) %>% select(age)
+hist(eulfs_small_b$age, freq = FALSE)
 ```
 
 ```{r}
@@ -169,7 +176,48 @@ title(ylab = "Proportion of people", line = 3) # a readable y-label
 ```
 
 ```{r}
+eulfs_small_b <- eulfs_small %>% filter(hwusual == 60) %>% select(age)
+hist((eulfs_small_b$age)/count())
 
+```
+
+```{r}
+### First step: get the vectors for the plot
+each_age <- c()
+age_by_hw <- c() # vector with every ages concerned for each working-hour bracket
+age_by_hw_length <- c() # vector with the number of ages concerned for each working-hour bracket
+for (hw in seq(60)) {
+  # Specific dataframe
+  eulfs_hw <- eulfs_small %>% filter(hw - 5 < hwusual &  hwusual < hw + 5) %>% select(age)
+  # Adding values to 3 vectors that are useful for plotting
+  age_by_hw_length <- c(age_by_hw_length, length(as.vector(unique(eulfs_hw$age))))
+  age_by_hw <- c(age_by_hw, sort(as.vector(unique(eulfs_hw$age))))
+  n_total <- nrow(eulfs_hw[eulfs_hw$age,])
+  for (i in unique(eulfs_hw$age)){
+    each_age <- c(each_age, nrow(eulfs_hw[eulfs_hw$age == i, ]))
+  }
+}
+
+### Plot
+# Values to target only parts of vectors to have 3 curves
+n1 <- age_by_hw_length[1]
+# n1b <- n1+1
+# n2 <- age_by_hw_length[1]+age_by_hw_length[2]
+# n2b <- n2+1
+# n3 <- age_by_hw_length[1]+age_by_hw_length[2]+age_by_hw_length[3]
+# Plot y-values scaled by number of observations against x values
+plot <- plot(age_by_hw[1:n1], each_age[1:n1], type="l", xlab="Age", ylab="", main = "Age structure for different groups of people \ndepending on their number of working hours", las = 2) # Those who work between 55 and 65 hours
+# lines(age_by_hw[n1b:n2], each_age[n1b:n2], col = "red") # Those who work between 35 and 45 hours
+# lines(age_by_hw[1:n1], each_age[1:n1], col = "blue") # Those who work between 15 and 25 hours
+title(ylab = "Proportion of people", line = 3) # a readable y-label
+# rm(n1, n1b, n2, n2b, n3)
+```
+
+Ideas:
+graph.freq: Histogram
+plot.freq: Plot a frequency table
+
+```{r}
 
 ```
 
@@ -178,12 +226,3 @@ title(ylab = "Proportion of people", line = 3) # a readable y-label
 ```
 
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
