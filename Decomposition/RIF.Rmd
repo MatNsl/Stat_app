@@ -13,6 +13,8 @@ install.packages("dplyr")
 install.packages("ggplot2")
 install.packages("labelled")
 install.packages("dineq") # specific package for RIF
+
+install.packages("stargazer") # for nice tables
 ```
 
 ```{r}
@@ -77,6 +79,29 @@ plot(df_quant$quant, df_quant$val_coef, type="l", xlab="Quantile", ylab="Effect 
 
 Figure 1. **The effect of age on the number of working hours is negative for those who work a little but positive for those who work a lot**. Coefficients before the age variable in the regression of the number of hours usually worked on age and control variables (sex and education), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
 
+A nice table.
+```{r}
+stargazer::stargazer(df_quant, title = "Usual working hours regressed on age, sex, and education", column.labels = c("Number of hours usually worked in main job"))
+
+print.data.frame(df_quant, row.names = FALSE)
+
+```
+covariate.labels = c("Sex (1 for male and 2 for female)", "Constant"), model.names = TRUE, keep.stat="n", omit.stat = c("rsq", "adj.rsq","ser","f")
+
+```{r}
+install.packages("lemon")
+knit_print.data.frame <- lemon::lemon_print
+```
+
+```{r caption="Data frame is now printed using `kable`.",render=lemon_print}
+df_quant
+```
+
+
+
+
+
+
 We may wonder if we can find again those results by looking at the age structure for different values of working hours.
 ```{r}
 ### First step: get the vectors for the plot
@@ -85,7 +110,7 @@ age_by_hw <- c() # vector with every ages concerned for each working-hour bracke
 age_by_hw_length <- c() # vector with the number of ages concerned for each working-hour bracket
 for (hw in seq(20, 60, by=20)) {
   # Specific dataframe
-  eulfs_hw <- eulfs_small %>% filter(hw - 5 < hwusual &  hwusual < hw + 5) %>% select(age)
+  eulfs_hw <- eulfs_small %>% filter(hw - 5 <= hwusual &  hwusual < hw + 5) %>% select(age)
   # Adding values to 3 vectors that are useful for plotting
   age_by_hw_length <- c(age_by_hw_length, length(as.vector(unique(eulfs_hw$age))))
   age_by_hw <- c(age_by_hw, sort(as.vector(unique(eulfs_hw$age))))
@@ -113,6 +138,12 @@ rm(n1, n1b, n2, n2b, n3)
 Figure 2. **Those who work the less have a very different age structure compared with others**. Proportion of people in each age bracket who usually work a certain number of hours (in blue between 15 and 25 hours, in red between 35 and 45 hours, in black between 55 and 65 hours), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
 
 Figure 2 is consistent with the results of RIF regression. Indeed, those who work the less tend to be younger than others, with only a small proportion aged between 50 and 60 years old. On the contrary, the two other groups have a peak for this age bracket, with the highest peak for those who work the most.
+
+```{r}
+
+plot(each_age[33:47])
+
+```
 
 ```{r}
 eulfs_small_b <- eulfs_small %>% filter(hwusual == 20) %>% select(age)
