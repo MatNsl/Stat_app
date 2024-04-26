@@ -6,10 +6,7 @@ output:
   pdf_document: default
   html_document: default
 ---
-  
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 ```{r echo = F, message = F, warning = F}
 source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
@@ -62,6 +59,8 @@ for (q in quantiles) {
 }
 
 ```
+
+
 ```{r}
 # Regressions for a given year
 quantiles <- seq(0.1, 0.9, by = 0.1)
@@ -93,6 +92,103 @@ xtable_data <- xtable(table_data)
 xtable_data
 
 ```
+
+
+```{r}
+
+### Le chunk suivant est mieux mais je garde lui en cas de pbl
+# Regressions for a given year
+quantiles <- seq(0.1, 0.9, by = 0.1)
+eulfs_small_year <- subset(eulfs_small, refyear == 1998)
+
+# For hatlev, education level, we create 3 binary variable
+eulfs_small_year$high_educ <- ifelse(eulfs_small_year$hatlev1d==3,1,0)
+eulfs_small_year$medium_educ <- ifelse(eulfs_small_year$hatlev1d==2,1,0)
+eulfs_small_year$low_educ <- ifelse(eulfs_small_year$hatlev1d==1,1,0)
+
+# Initialize a list to store the results
+results <- list()
+
+# Loop over each quantile
+for (q in quantiles) {
+  # Fit the quantile regression model with both sex and age
+  rq_model <- rq(hwactual ~ sex + high_educ + low_educ, tau = q, data = eulfs_small_year)
+  
+  # Store the results in the list
+  results[[as.character(q)]] <- summary(rq_model)
+}
+
+# Convert the results to LaTeX using xtable
+table_data <- NULL
+for (q in quantiles) {
+  coef_data <- c(q, results[[as.character(q)]]$coef[, 1])
+  table_data <- rbind(table_data, coef_data)
+}
+colnames(table_data) <- c("Quantile", "Intercept", "Sex", "High education", "Low education") 
+
+# Convert to xtable object
+xtable_data <- xtable(table_data)
+
+# Print the LaTeX code for the table
+print(xtable_data)
+
+
+rm(xtable_data)
+```
+
+```{r}
+# Regressions for a given year
+quantiles <- seq(0.1, 0.9, by = 0.1)
+eulfs_small_year <- subset(eulfs_small, refyear == 2013)
+
+# For hatlev, education level, we create 3 binary variable
+eulfs_small_year$high_educ <- ifelse(eulfs_small_year$hatlev1d==3,1,0)
+eulfs_small_year$medium_educ <- ifelse(eulfs_small_year$hatlev1d==2,1,0)
+eulfs_small_year$low_educ <- ifelse(eulfs_small_year$hatlev1d==1,1,0)
+
+# Initialize a list to store the results
+results <- list()
+
+# Loop over each quantile
+for (q in quantiles) {
+  # Fit the quantile regression model with both sex and age
+  rq_model <- rq(hwactual ~ sex + high_educ + medium_educ + ftpt, tau = q, data = eulfs_small_year, model = TRUE)
+  
+  # Store the results in the list
+  results[[as.character(q)]] <- summary(rq_model)
+}
+
+# Initialize an empty matrix to store the table data
+table_data <- matrix(nrow = length(quantiles), ncol = 5)
+colnames(table_data) <- c("Quantile", "Intercept", "Sex", "High education", "Medium education")
+
+# Loop over each quantile
+for (i in seq_along(quantiles)) {
+  q <- quantiles[i]
+  coef_values <- results[[as.character(q)]]$coef[, 1]
+  
+  # Populate the table data with relevant coefficients
+  table_data[i, ] <- c(q, coef_values["(Intercept)"], coef_values["sex"], coef_values["high_educ"], coef_values["medium_educ"])
+}
+
+# Convert to xtable object
+xtable_data <- xtable(table_data)
+
+# Print the LaTeX code for the table
+print(xtable_data)
+
+
+rm(xtable_data)
+```
+
+```{r}
+rq_model <- rq(hwactual ~ sex + high_educ + medium_educ + low_educ, data = eulfs_small_year, tau = 0.5)
+
+# Vérification de la corrélation entre les variables
+cor(eulfs_small_year[, c("sex", "high_educ", "medium_educ", "low_educ")])
+
+```
+
 
 
 
