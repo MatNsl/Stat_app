@@ -1,0 +1,185 @@
+---
+title: "Unconditional Quantile Regressions"
+output: html_document
+date: "2024-04-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Preliminaries
+
+```{r}
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("labelled")
+install.packages("dineq") # specific package for RIF
+install.packages("stargazer") # for nice tables
+install.packages("sandwich")
+install.packages("lmtest")
+```
+
+```{r}
+library("dplyr")
+library("ggplot2")
+library("labelled")
+```
+
+```{r}
+source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
+```
+
+```{r}
+eulfs_small$hwusual <- na_if(eulfs_small$hwusual, 99)
+```
+
+## Results from a simple linear regression for comparison
+
+```{r}
+reg_lm <- lm(formula = hwusual ~ age + as.factor(sex) + as.factor(hatlev1d), data = eulfs_small)
+v_country = sandwich::vcovCL(reg_lm, cluster = ~country)
+reg_year = lmtest::coeftest(reg_lm, v_country)
+```
+
+```{r}
+stargazer::stargazer(reg_lm, title = "Usual working hours regressed on age, sex and education, standard errors account for clustering by countries", column.labels = c("Number of hours usually worked in main job"), covariate.labels = c("Age", "Female", "Low education", "Medium education", "High education", "Constant"), model.names = TRUE, keep.stat="n", omit.stat = c("rsq", "adj.rsq","ser","f"))
+```
+% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+% Date and time: Sat, Apr 27, 2024 - 02:31:56 PM
+\begin{table}[!htbp] \centering 
+  \caption{Usual working hours regressed on age, sex and education, standard errors account for clustering by countries} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{1}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-2} 
+\\[-1.8ex] & hwusual \\ 
+\\[-1.8ex] & \textit{OLS} \\ 
+ & Number of hours usually worked in main job \\ 
+\hline \\[-1.8ex] 
+ Age & 0.006$^{**}$ \\ 
+  & (0.003) \\ 
+  & \\ 
+ Female & $-$5.501$^{***}$ \\ 
+  & (0.075) \\ 
+  & \\ 
+ Low education & 1.658$^{***}$ \\ 
+  & (0.093) \\ 
+  & \\ 
+ Medium education & 2.114$^{***}$ \\ 
+  & (0.106) \\ 
+  & \\ 
+ High education & 38.018$^{***}$ \\ 
+  & (0.154) \\ 
+  & \\ 
+\hline \\[-1.8ex] 
+Observations & 107,502 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table}
+
+We notice that age is the less significant of all our variables and the one with the smallest effect.
+
+## Results from an Unconditional Quantile Regression
+
+```{r}
+# RIF Regression with the median
+rifr_med <- dineq::rifr(hwusual ~ age + (sex - 1) + as.factor(hatlev1d), eulfs_small, weights = NULL, method = "quantile", quantile = 0.5, kernel = "gaussian")
+```
+
+```{r}
+# We create a new object based on previous result to have it looking like a linear model
+as_lm = list()
+as_lm[["coefficients"]] = as.double( rifr_med[["Coef"]] )
+as_lm[[""]] = 
+
+### Work in progress......
+```
+
+```{r}
+#### Caution! Not a readable table!!!
+stargazer::stargazer(rifr_med, title = "RIF Regression using the median: usual working hours regressed on age, sex and education", column.labels = c("Number of hours usually worked in main job"), covariate.labels = c("Age", "Female", "Low education", "Medium education", "High education", "Constant"), model.names = FALSE, keep.stat="n", omit.stat = c("rsq", "adj.rsq","ser","f"))
+```
+
+```{r}
+#### Caution! Not a readable table!!!
+df_rifr <- data.frame(Variable = c("Age", "Female", "Low education", "Medium education", "High education"), Coefficients = as.vector(rifr_med[["Coef"]]))
+# df_rifr["Variable"] <- c("Age", "Female", "Low education", "Medium education", "High education", "Constant")
+# df_rifr["Coefficients"] <- rifr_med[["Coef"]]
+stargazer::stargazer(df_rifr, title = "RIF Regression using the median: usual working hours regressed on age, sex and education", column.labels = c("Number of hours usually worked in main job"), model.names = FALSE, keep.stat="n", omit.stat = c("rsq", "adj.rsq","ser","f"))
+```
+
+## Series of Unconditional Quantile Regressions
+
+One may want to regress the number of hours usually worked on age and control variables (sex and education) and take into account numerous quantiles to see the effect of age on the outcome variable.
+
+```{r}
+val_coef = c()
+for (q in seq(0.05, 0.95, by=0.05)) {
+  rifr_q <- dineq::rifr(hwusual ~ age + (sex - 1) + as.factor(hatlev1d), eulfs_small, weights = NULL, method = "quantile", quantile = q, kernel = "gaussian")
+  coefs <- as.vector(rifr_q[["Coef"]])
+  val_coef <- c(val_coef, coefs[2])
+}
+rm(q, rifr_q, coefs)
+quant <- as.vector(seq(0.05, 0.95, by=0.05))
+df_quant <- data.frame(quant, val_coef)
+rm(quant, val_coef)
+```
+
+```{r}
+plot(df_quant$quant, df_quant$val_coef, type="l", xlab="Quantile", ylab="Effect of age", main = "Unconditional quantile regressions estimates \n of the effect of age on the number of hours usually worked", las = 2)
+```
+Figure 1. **The effect of age on the number of working hours is negative for those who work a little but positive for those who work a lot**. Coefficients before the age variable in the regression of the number of hours usually worked on age and control variables (sex and education), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+We may wonder if changing the quantiles has any impact on the results.
+Let's try more precise quantiles.
+```{r}
+val_coef = c()
+for (q in seq(0.01, 0.99, by=0.01)) {
+  rifr_q <- dineq::rifr(hwusual ~ age + (sex - 1) + as.factor(hatlev1d), eulfs_small, weights = NULL, method = "quantile", quantile = q, kernel = "gaussian")
+  coefs <- as.vector(rifr_q[["Coef"]])
+  val_coef <- c(val_coef, coefs[2])
+}
+rm(q, rifr_q, coefs)
+quant <- as.vector(seq(0.01, 0.99, by=0.01))
+df_quant <- data.frame(quant, val_coef)
+rm(quant, val_coef)
+```
+We got the message: 
+"Warning: essentially perfect fit: summary may be unreliable"
+
+```{r}
+plot(df_quant$quant, df_quant$val_coef, type="l", xlab="Quantile", ylab="Effect of age", main = "Unconditional quantile regressions estimates \n of the effect of age on the number of hours usually worked \n (using percentiles)", las = 2)
+```
+Figure 2. **The effect of age on the number of working hours is somewhat unclear for those who work a little but positive for those who work a lot**. Coefficients before the age variable in the regression of the number of hours usually worked on age and control variables (sex and education), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+This 2nd figure seems useless since we get over-fitting: indeed, only a few people are concerned for each quantile.
+However, it clearly shows that the part of the population who work a little is more heterogeneous.
+
+
+Let's try a third case.
+```{r}
+val_coef = c()
+for (q in seq(0.1, 0.9, by=0.1)) {
+  rifr_q <- dineq::rifr(hwusual ~ age + (sex - 1) + as.factor(hatlev1d), eulfs_small, weights = NULL, method = "quantile", quantile = q, kernel = "gaussian")
+  coefs <- as.vector(rifr_q[["Coef"]])
+  val_coef <- c(val_coef, coefs[2])
+}
+rm(q, rifr_q, coefs)
+quant <- as.vector(seq(0.1, 0.9, by=0.1))
+df_quant <- data.frame(quant, val_coef)
+rm(quant, val_coef)
+```
+
+```{r}
+plot(df_quant$quant, df_quant$val_coef, type="l", xlab="Quantile", ylab="Effect of age", main = "Unconditional quantile regressions estimates \n of the effect of age on the number of hours usually worked \n (using deciles)", las = 2)
+```
+Figure 3. **The effect of age on the number of working hours is strongly negative for those who work a little but slightly positive for those who work a lot**. Coefficients before the age variable in the regression of the number of hours usually worked on age and control variables (sex and education), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+This third case is obviously less precise than the first one but roughly shows the same trends.
+
+
+
+
