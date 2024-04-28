@@ -1,6 +1,8 @@
 ---
 title: "Unconditional Quantile Regressions"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 date: "2024-04-26"
 ---
 
@@ -250,5 +252,52 @@ This third case is obviously less precise than the first one but roughly shows t
 
 ## Oaxaca decomposition with RIF
 
+We will try to make a Oaxaca decomposition with two RIF regressions.
+Our two groups will be 1998 and 2013.
+The reference year for the decomposition is 2013.
 
+```{r}
+# Two more precise datasets
+eulfs1998 <- eulfs_small[eulfs_small$year == 1998,]
+eulfs2013 <- eulfs_small[eulfs_small$year == 2013,]
+```
+
+```{r}
+# RIF Regressions with the first quartile
+rifr_1998 <- dineq::rifr(hwusual ~ age + (sex - 1) + as.factor(hatlev1d), eulfs1998, weights = NULL, method = "quantile", quantile = 0.25, kernel = "gaussian")
+rifr_2013 <- dineq::rifr(hwusual ~ age + (sex - 1) + as.factor(hatlev1d), eulfs2013, weights = NULL, method = "quantile", quantile = 0.25, kernel = "gaussian")
+```
+
+```{r}
+# Function for first-quartile characteristics
+q1_fun <- function(df){
+  q1_carac <- c(quantile(df$age, probs =0.25), quantile(df$sex - 1, probs =0.25))
+  q1_hat <- quantile(eulfs1998$hatlev1d, probs =0.25, na.rm =TRUE)
+  for (educ in 1:3){
+    q1_educ <- ifelse(q1_hat == educ, 1, 0)
+    q1_carac <- c(q1_carac, q1_educ)
+  }
+  rm(q1_educ)
+  q1_carac
+}
+```
+
+```{r}
+# First-quartile characteristics in 1998
+q1_1998 <- q1_fun(eulfs1998)
+q1_2013 <- q1_fun(eulfs2013)
+
+# Number of hours usually worked as estimated with rif
+y1998 <- sum(rifr_1998[["Coef"]]*q1_1998)
+y2013 <- sum(rifr_2013[["Coef"]]*q1_2013)
+
+# Decomposition with both effects (explained and unexplained)
+ex_effect <- sum((q1_1998 - q1_2013) * rifr_2013[["Coef"]])
+unex_effect <- sum(q1_1998 * (rifr_2013[["Coef"]] - rifr_1998[["Coef"]]))
+cat("The discrepancy between both years is", format(round(y2013-y1998, 4), nsmall = 4), ", including the explained effect", format(round(ex_effect, 4), nsmall = 4), "and the unexplained effect", format(round(unex_effect, 4), nsmall = 4), ".")
+
+```
+
+The problem is that we have a lots of null values with indicator variables.
+This decomposition is thus not very satisfactory.
 
