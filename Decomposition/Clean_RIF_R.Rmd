@@ -202,7 +202,7 @@ rm(quant, val_coef)
 ```{r}
 plot(df_quant$quant, df_quant$val_coef, type="l", xlab="Quantile", ylab="Effect of age", main = "Unconditional quantile regressions estimates \n of the effect of age on the number of hours usually worked", las = 2)
 ```
-Figure 1. **The effect of age on the number of working hours is negative for those who work a little but positive for those who work a lot**. Coefficients before the age variable in the regression of the number of hours usually worked on age and control variables (sex and education), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+Figure 1. **The effect of age on the number of working hours is strongly negative for those who work a little and negative, but to a lesser extent, for those who work a lot**. Coefficients before the age variable in the regression of the number of hours usually worked on age and control variables (sex and education), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
 
 We may wonder if changing the quantiles has any impact on the results.
 Let's try more precise quantiles.
@@ -224,9 +224,9 @@ We got the message:
 ```{r}
 plot(df_quant$quant, df_quant$val_coef, type="l", xlab="Quantile", ylab="Effect of age", main = "Unconditional quantile regressions estimates \n of the effect of age on the number of hours usually worked \n (using percentiles)", las = 2)
 ```
-Figure 2. **The effect of age on the number of working hours is somewhat unclear for those who work a little but positive for those who work a lot**. Coefficients before the age variable in the regression of the number of hours usually worked on age and control variables (sex and education), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+Figure 2. **The effect of age on the number of working hours is negative, with extreme values, for those who work a little and negative, but to a lesser extent, for those who work a lot**. Coefficients before the age variable in the regression of the number of hours usually worked on age and control variables (sex and education), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
 This 2nd figure seems useless since we get over-fitting: indeed, only a few people are concerned for each quantile.
-However, it clearly shows that the part of the population who work a little is more heterogeneous.
+However, it clearly shows that the part of the population who work a little is more heterogeneous, and that it is this part of the population which is the most affected by age.
 
 
 Let's try a third case.
@@ -246,7 +246,7 @@ rm(quant, val_coef)
 ```{r}
 plot(df_quant$quant, df_quant$val_coef, type="l", xlab="Quantile", ylab="Effect of age", main = "Unconditional quantile regressions estimates \n of the effect of age on the number of hours usually worked \n (using deciles)", las = 2)
 ```
-Figure 3. **The effect of age on the number of working hours is strongly negative for those who work a little but slightly positive for those who work a lot**. Coefficients before the age variable in the regression of the number of hours usually worked on age and control variables (sex and education), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+Figure 3. **The effect of age on the number of working hours is strongly negative for those who work a little and only slightly negative for those who work a lot**. Coefficients before the age variable in the regression of the number of hours usually worked on age and control variables (sex and education), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
 This third case is obviously less precise than the first one but roughly shows the same trends.
 
 
