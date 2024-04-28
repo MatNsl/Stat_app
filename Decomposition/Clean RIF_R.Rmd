@@ -8,6 +8,7 @@ date: "2024-04-26"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 ## Preliminaries
 
 ```{r}
@@ -33,6 +34,7 @@ source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
 ```{r}
 eulfs_small$hwusual <- na_if(eulfs_small$hwusual, 99)
 ```
+
 
 ## Results from a simple linear regression for comparison
 
@@ -84,6 +86,7 @@ Observations & 107,502 \\
 
 We notice that age is the less significant of all our variables and the one with the smallest effect.
 
+
 ## Results from an Unconditional Quantile Regression
 
 ```{r}
@@ -93,6 +96,7 @@ rifr_med <- dineq::rifr(hwusual ~ age + (sex - 1) + as.factor(hatlev1d), eulfs_s
 
 ```{r}
 ### Function to have a clean table based on a RIF Regression
+# Indeed, stargazer does not take into account rif regressions
 table_rifr <- function(rifr, Title_tab, vec_names){
   cat(c(
 "\\begin{table}[!htbp] \\centering\n", 
@@ -129,9 +133,6 @@ table_rifr <- function(rifr, Title_tab, vec_names){
   }
   cat(c(
     "\\hline \\\\[-1.8ex] 
-Observations & 107,502 \\\\ 
-\\hline 
-\\hline \\\\[-1.8ex] 
 \\textit{Note:}  & \\multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\\\ 
 \\end{tabular} 
 \\end{table}"
@@ -171,55 +172,13 @@ table_rifr(rifr_med, "RIF Regression using the median: usual working hours regre
       High education  &  40.7084 $^{ *** }$ \\ 
     & ( 0.0121 ) \\ 
     & \\
-     \hline \\[-1.8ex] 
-Observations & 107,502 \\ 
-\hline 
-\hline \\[-1.8ex] 
+    \hline \\[-1.8ex] 
 \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
 \end{tabular} 
 \end{table}
 
-```{r}
-# RIF Regression with the first quartile
-rifr_q1 <- dineq::rifr(hwusual ~ age + (sex - 1) + as.factor(hatlev1d), eulfs_small, weights = NULL, method = "quantile", quantile = 0.25, kernel = "gaussian")
-```
+Age has still a very small coefficient, but its sign has changed.
 
-```{r}
-### Applying the function previously created to our new regression 
-table_rifr(rifr_q1, "RIF Regression using the first quartile: usual working hours regressed on age, sex and education", c("Age", "Female", "Low education", "Medium education", "High education"))
-```
-
-```{r}
-### USELESS
-# We create a new object based on previous result to have it looking like a linear model
-as_lm = list()
-as_lm[["coefficients"]] = as.double( rifr_med[["Coef"]] )
-as_lm[[""]] = 
-### Work in progress......
-```
-
-```{r}
-### USELESS
-#### Caution! Not a readable table!!!
-stargazer::stargazer(rifr_med, title = "RIF Regression using the median: usual working hours regressed on age, sex and education", column.labels = c("Number of hours usually worked in main job"), covariate.labels = c("Age", "Female", "Low education", "Medium education", "High education", "Constant"), model.names = FALSE, keep.stat="n", omit.stat = c("rsq", "adj.rsq","ser","f"))
-```
-
-```{r}
-### USELESS
-#### Caution! Not a readable table!!!
-df_rifr <- data.frame(Variable = c("Age", "Female", "Low education", "Medium education", "High education"), Coefficients = as.vector(rifr_med[["Coef"]]))
-# df_rifr["Variable"] <- c("Age", "Female", "Low education", "Medium education", "High education", "Constant")
-# df_rifr["Coefficients"] <- rifr_med[["Coef"]]
-stargazer::stargazer(df_rifr, title = "RIF Regression using the median: usual working hours regressed on age, sex and education", column.labels = c("Number of hours usually worked in main job"), model.names = FALSE, keep.stat="n", omit.stat = c("rsq", "adj.rsq","ser","f"))
-```
-
-```{r}
-### USELESS
-#### It works but not very nice, nor complete
-df_rifr <- data.frame(Variable = c("Age", "Female", "Low education", "Medium education", "High education"), Coefficients = as.vector(rifr_med[["Coef"]]))
-df_rifr
-
-```
 
 ## Series of Unconditional Quantile Regressions
 
@@ -290,7 +249,6 @@ This third case is obviously less precise than the first one but roughly shows t
 
 
 ## Oaxaca decomposition with RIF
-
 
 
 
