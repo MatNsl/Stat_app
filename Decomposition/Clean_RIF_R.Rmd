@@ -41,16 +41,23 @@ eulfs_small$hwusual <- na_if(eulfs_small$hwusual, 99)
 ## Results from a simple linear regression for comparison
 
 ```{r}
-reg_lm <- lm(formula = hwusual ~ age + as.factor(sex) + as.factor(hatlev1d), data = eulfs_small)
+# Recoding hatlev1d as 3 indicator variables
+eulfs_small$high_educ <- ifelse(eulfs_small$hatlev1d==3,1,0)
+eulfs_small$medium_educ <- ifelse(eulfs_small$hatlev1d==2,1,0)
+eulfs_small$low_educ <- ifelse(eulfs_small$hatlev1d==1,1,0)
+```
+
+```{r}
+reg_lm <- lm(formula = hwusual ~ age + (sex - 1) + low_educ + high_educ, data = eulfs_small)
 v_country = sandwich::vcovCL(reg_lm, cluster = ~country)
 reg_year = lmtest::coeftest(reg_lm, v_country)
 ```
 
 ```{r}
-stargazer::stargazer(reg_lm, title = "Usual working hours regressed on age, sex and education, standard errors account for clustering by countries", column.labels = c("Number of hours usually worked in main job"), covariate.labels = c("Age", "Female", "Low education", "Medium education", "High education", "Constant"), model.names = TRUE, keep.stat="n", omit.stat = c("rsq", "adj.rsq","ser","f"))
+stargazer::stargazer(reg_lm, title = "Usual working hours regressed on age, sex and education, standard errors account for clustering by countries", column.labels = c("Number of hours usually worked in main job"), covariate.labels = c("Age", "Female", "Low education", "High education"), model.names = TRUE, keep.stat="n", omit.stat = c("rsq", "adj.rsq","ser","f"))
 ```
 % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-% Date and time: Sat, Apr 27, 2024 - 02:31:56 PM
+% Date and time: Wed, May 01, 2024 - 11:26:03 AM
 \begin{table}[!htbp] \centering 
   \caption{Usual working hours regressed on age, sex and education, standard errors account for clustering by countries} 
   \label{} 
@@ -63,20 +70,17 @@ stargazer::stargazer(reg_lm, title = "Usual working hours regressed on age, sex 
 \\[-1.8ex] & \textit{OLS} \\ 
  & Number of hours usually worked in main job \\ 
 \hline \\[-1.8ex] 
- Age & 0.006$^{**}$ \\ 
+ Age & 0.567$^{***}$ \\ 
   & (0.003) \\ 
   & \\ 
- Female & $-$5.501$^{***}$ \\ 
-  & (0.075) \\ 
+ Female & 7.180$^{***}$ \\ 
+  & (0.074) \\ 
   & \\ 
- Low education & 1.658$^{***}$ \\ 
-  & (0.093) \\ 
+ Low education & 1.227$^{***}$ \\ 
+  & (0.119) \\ 
   & \\ 
- Medium education & 2.114$^{***}$ \\ 
-  & (0.106) \\ 
-  & \\ 
- High education & 38.018$^{***}$ \\ 
-  & (0.154) \\ 
+ High education & 2.994$^{***}$ \\ 
+  & (0.116) \\ 
   & \\ 
 \hline \\[-1.8ex] 
 Observations & 107,502 \\ 
@@ -84,16 +88,16 @@ Observations & 107,502 \\
 \hline \\[-1.8ex] 
 \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
 \end{tabular} 
-\end{table}
+\end{table} 
 
-We notice that age is the less significant of all our variables and the one with the smallest effect.
+All coefficients are very significant.
 
 
 ## Results from an Unconditional Quantile Regression
 
 ```{r}
 # RIF Regression with the median
-rifr_med <- dineq::rifr(hwusual ~ age + (sex - 1) + as.factor(hatlev1d), eulfs_small, weights = NULL, method = "quantile", quantile = 0.5, kernel = "gaussian")
+rifr_med <- dineq::rifr(hwusual ~ age + (sex - 1) + low_educ + high_educ, eulfs_small, weights = NULL, method = "quantile", quantile = 0.5, kernel = "gaussian")
 ```
 
 ```{r}
@@ -144,7 +148,7 @@ table_rifr <- function(rifr, Title_tab, vec_names){
 
 ```{r}
 ### Applying the function previously created to our regression 
-table_rifr(rifr_med, "RIF Regression using the median: usual working hours regressed on age, sex and education", c("Age", "Female", "Low education", "Medium education", "High education"))
+table_rifr(rifr_med, "RIF Regression using the median: usual working hours regressed on age, sex and education", c("Age", "Female", "Low education", "High education"))
 ```
 
 \begin{table}[!htbp] \centering
@@ -159,27 +163,45 @@ table_rifr(rifr_med, "RIF Regression using the median: usual working hours regre
  \\[-1.8ex] & \textit{UQR} \\
   & Number of hours usually worked in main job \\
  \hline \\[-1.8ex]
-  Age  &  -0.0014 $^{ *** }$ \\ 
-    & ( 2e-04 ) \\ 
+  Age  &  0.5050 $^{ *** }$ \\ 
+    & ( 0.0015 ) \\ 
     & \\
-      Female  &  -0.3434 $^{ *** }$ \\ 
-    & ( 0.0049 ) \\ 
+      Female  &  11.1019 $^{ *** }$ \\ 
+    & ( 0.0419 ) \\ 
     & \\
-      Low education  &  40.6755 $^{ *** }$ \\ 
-    & ( 0.0121 ) \\ 
+      Low education  &  2.5036 $^{ *** }$ \\ 
+    & ( 0.0672 ) \\ 
     & \\
-      Medium education  &  40.7754 $^{ *** }$ \\ 
-    & ( 0.0112 ) \\ 
-    & \\
-      High education  &  40.7084 $^{ *** }$ \\ 
-    & ( 0.0121 ) \\ 
+      High education  &  2.2237 $^{ *** }$ \\ 
+    & ( 0.0654 ) \\ 
     & \\
     \hline \\[-1.8ex] 
 \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
 \end{tabular} 
 \end{table}
 
-Age has still a very small coefficient, but its sign has changed.
+All coefficients are still very significant.
+The coefficient associated with age is almost unchanged, the one associated with being a woman is higher, and the coefficient associated with low education is now higher than the one associated with high education (the reverse of the previous result).
+
+```{r}
+moy_hw <- mean(eulfs_small$hwusual, na.rm =TRUE)
+med_hw <- quantile(eulfs_small$hwusual, probs =0.5, na.rm =TRUE)
+cat("The mean,", format(round(moy_hw, 4), nsmall = 4), ", is actually lower than the median,", format(round(med_hw, 4), nsmall = 4), "; which means that there are extreme cases, in particular with low values.")
+
+```
+
+```{r}
+# Eliminating people who usually do not work (hwusual = 0 is treated as NA)
+eulfs_no0 <- eulfs_small
+eulfs_no0$hwusual <- na_if(eulfs_small$hwusual, 0)
+moy_hw <- mean(eulfs_no0$hwusual, na.rm =TRUE)
+med_hw <- quantile(eulfs_no0$hwusual, probs =0.5, na.rm =TRUE)
+cat("Even after eliminating people with 0 working hours, the mean,", format(round(moy_hw, 4), nsmall = 4), ", is lower than the median,", format(round(med_hw, 4), nsmall = 4), "; which means that there are extreme cases, in particular with low values.")
+```
+
+The question is now: how to correctly interpret the difference between those two regressions?
+I would say that extreme values (very low and very high number of working hours) have a non-negligible effect on the mean, and therefore on the linear regression.
+When we reduce the weight of people working only very few hours, we get slightly different results. For instance, the proportion of female workers among those who work a few hours is high. Thus, the coefficient associated with "Female" is higher when we take the median as a reference like in the RIF regression.
 
 
 ## Series of Unconditional Quantile Regressions
@@ -264,8 +286,8 @@ eulfs2013 <- eulfs_small[eulfs_small$year == 2013,]
 
 ```{r}
 # RIF Regressions with the first quartile
-rifr_1998 <- dineq::rifr(hwusual ~ age + (sex - 1) + as.factor(hatlev1d), eulfs1998, weights = NULL, method = "quantile", quantile = 0.25, kernel = "gaussian")
-rifr_2013 <- dineq::rifr(hwusual ~ age + (sex - 1) + as.factor(hatlev1d), eulfs2013, weights = NULL, method = "quantile", quantile = 0.25, kernel = "gaussian")
+rifr_1998 <- dineq::rifr(hwusual ~ age + (sex - 1) + low_educ + high_educ, eulfs1998, weights = NULL, method = "quantile", quantile = 0.25, kernel = "gaussian")
+rifr_2013 <- dineq::rifr(hwusual ~ age + (sex - 1) + low_educ + high_educ, eulfs2013, weights = NULL, method = "quantile", quantile = 0.25, kernel = "gaussian")
 ```
 
 ```{r}
@@ -273,7 +295,7 @@ rifr_2013 <- dineq::rifr(hwusual ~ age + (sex - 1) + as.factor(hatlev1d), eulfs2
 q1_fun <- function(df){
   q1_carac <- c(quantile(df$age, probs =0.25), quantile(df$sex - 1, probs =0.25))
   q1_hat <- quantile(eulfs1998$hatlev1d, probs =0.25, na.rm =TRUE)
-  for (educ in 1:3){
+  for (educ in c(1,3)){
     q1_educ <- ifelse(q1_hat == educ, 1, 0)
     q1_carac <- c(q1_carac, q1_educ)
   }
