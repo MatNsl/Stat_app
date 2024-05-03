@@ -1,0 +1,233 @@
+---
+title: "Usual VS Actual"
+output:
+  pdf_document: default
+  html_document: default
+date: "2024-05-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
+```
+
+```{r}
+#Packages :
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("labelled")
+library("dplyr")
+library("ggplot2")
+library("labelled")
+
+# Add this package for %>%
+library("magrittr")
+```
+
+```{r}
+install.packages("reshape2")
+```
+
+```{r}
+library(xtable) # To have LaTeX tables based on dataframes
+```
+
+```{r}
+install.packages("sandwich")
+install.packages("lmtest")
+install.packages("stargazer")
+```
+
+```{r}
+### First step: the number of hours people usually work
+# Get the density estimate
+dens1 <- density(eulfs_small$hwusual, na.rm = TRUE)
+# Need to delete negative values for the number of working hours, as well as the values above 80 hours which are absent to the dataset
+# Need for x and y with the same length
+n <- length(dens1[[1]])
+dens1[[1]] <- dens1[[1]][!(dens1[[1]] < 0)]
+n_1 <- length(dens1[[1]])
+loss_1 <- n - n_1 # number of first elements that were deleted
+dens1[[1]] <- dens1[[1]][!(dens1[[1]] > 80)]
+loss_2 <- n_1 - length(dens1[[1]]) # number of last elements that were deleted
+dens1[[2]] <- tail(dens1[[2]],-loss_1)
+dens1[[2]] <- head(dens1[[2]], -loss_2)
+
+### Second step: the number of hours people wish
+# Very similar case
+# Get the density estimate
+dens2 <- density(eulfs_small$hwactual, na.rm = TRUE)
+# Need to delete negative values for the number of working hours, as well as the values above 80 hours which are absent to the dataset
+# Need for x and y with the same length
+n <- length(dens2[[1]])
+dens2[[1]] <- dens2[[1]][!(dens2[[1]] > 80)]
+loss <- n - length(dens2[[1]]) # number of last elements that were deleted
+dens2[[2]] <- head(dens2[[2]], -loss)
+
+### Plot
+# Plot y-values scaled by number of observations against x values
+par(mar = c(5.1, 5.1, 4.1, 2.1))
+plot <- plot(dens1$x, dens1$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours\n actually / usually worked per week for main job", las = 2)
+lines(dens2$x, dens2$y, col = "red")
+title(ylab = "Proportion of people", line = 3) # a readable y-label
+
+```
+Figure 1. **A strong correlation exists between the number of hours usually and actually worked**. Density of the number of hours usually worked (in black) and density of the number of hours people actually work (in red), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+The peak of the distribution is clearly between 35 and 40 hours with more than half of the population. However, it may be useful to zoom in to focus on the peak.
+
+## Comparing quantiles
+
+```{r}
+df_q <- data.frame(usual = numeric(), actual = numeric())
+quant_ <- c(0.1, 0.25, 0.5, 0.75, 0.9)
+for (i in 1:length(quant_)){
+  q <- quant_[i]
+  q1 <- quantile(eulfs_small$hwusual, probs = q, na.rm =TRUE)
+  q2 <- quantile(eulfs_small$hwactual, probs = q, na.rm =TRUE)
+  df_q[i,] <- c(q1, q2)
+}
+row.names(df_q) <- quant_
+```
+
+```{r}
+eulfs_no0 <- eulfs_small[(eulfs_small$hwusual != 0) & (eulfs_small$hwactual != 0),]
+df_q_no0 <- data.frame(usual = numeric(), actual = numeric())
+quant_ <- c(0.1, 0.25, 0.5, 0.75, 0.9)
+for (i in 1:length(quant_)){
+  q <- quant_[i]
+  q1 <- quantile(eulfs_no0$hwusual, probs = q, na.rm =TRUE)
+  q2 <- quantile(eulfs_no0$hwactual, probs = q, na.rm =TRUE)
+  df_q_no0[i,] <- c(q1, q2)
+}
+row.names(df_q_no0) <- quant_
+```
+
+
+```{r}
+xtable(df_q, caption = "Some quantiles of both possible outcome variables")
+```
+
+% latex table generated in R 4.3.3 by xtable 1.8-4 package
+% Fri May  3 18:40:27 2024
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrr}
+  \hline
+ & usual & actual \\ 
+  \hline
+0.1 & 20.00 & 8.00 \\ 
+  0.25 & 36.00 & 30.00 \\ 
+  0.5 & 40.00 & 40.00 \\ 
+  0.75 & 40.00 & 40.00 \\ 
+  0.9 & 50.00 & 50.00 \\ 
+   \hline
+\end{tabular}
+\caption{Some quantiles of both possible outcome variables} 
+\end{table}
+
+```{r}
+xtable(df_q_no0, caption = "Some quantiles of both possible outcome variables without null values")
+```
+
+% latex table generated in R 4.3.3 by xtable 1.8-4 package
+% Fri May  3 18:41:06 2024
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrr}
+  \hline
+ & usual & actual \\ 
+  \hline
+0.1 & 22.00 & 20.00 \\ 
+  0.25 & 37.00 & 32.00 \\ 
+  0.5 & 40.00 & 40.00 \\ 
+  0.75 & 40.00 & 40.00 \\ 
+  0.9 & 50.00 & 50.00 \\ 
+   \hline
+\end{tabular}
+\caption{Some quantiles of both possible outcome variables without null values} 
+\end{table}
+
+```{r}
+# Gap between the two distributions
+diff_q <- data.frame(quant = numeric(), gap = numeric())
+i=0
+for (q in seq(0, 1, by = 0.05)){
+  i <- i + 1
+  q1 <- quantile(eulfs_small$hwusual, probs = q, na.rm =TRUE)
+  q2 <- quantile(eulfs_small$hwactual, probs = q, na.rm =TRUE)
+  diff_q[i,] <- c(q, q2-q1)
+}
+```
+
+```{r}
+# Gap between the two distributions
+eulfs_no0 <- eulfs_small[(eulfs_small$hwusual != 0) & (eulfs_small$hwactual != 0),]
+diff_q_no0 <- data.frame(quant = numeric(), gap = numeric())
+i=0
+for (q in seq(0, 1, by = 0.05)){
+  i <- i + 1
+  q1 <- quantile(eulfs_no0$hwusual, probs = q, na.rm =TRUE)
+  q2 <- quantile(eulfs_no0$hwactual, probs = q, na.rm =TRUE)
+  diff_q_no0[i,] <- c(q, q2-q1)
+}
+```
+
+```{r}
+plot(diff_q$quant, diff_q$gap, type="l", xlab="Quantiles", ylab="Quantile of hwusual minus quantile of hwactual", main = "Gap between quantiles", las = 1)
+lines(diff_q_no0$quant, diff_q_no0$gap, col = "red")
+```
+Figure 1. \textbf{The distribbution of usual and actual working hours differ}. The gap between quantiles for usual and actual working hours, with null values (in black) and without (in red), all years combined. 31 countries from the 2014 release of the EU Labor Force Survey, own analyses.
+
+```{r}
+
+```
+
+
+## Regression to see how well we may explain one variable thanks to the other
+
+```{r}
+reg <- lm(formula = hwusual ~ hwactual, data = eulfs_small)
+v_country = sandwich::vcovCL(reg, cluster = ~country)
+reg_year = lmtest::coeftest(reg, v_country)
+```
+
+```{r}
+stargazer::stargazer(reg, title = "Usual working hours regressed on actual working hours, standard errors account for clustering by countries", column.labels = c("Number of hours actually worked in main job"), covariate.labels = c("Actual", "Constant"), model.names = TRUE, keep.stat="n", omit.stat = c("rsq", "adj.rsq","ser","f"))
+
+```
+
+% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+% Date and time: Fri, May 03, 2024 - 06:45:29 PM
+\begin{table}[!htbp] \centering 
+  \caption{Usual working hours regressed on actual working hours, standard errors account for clustering by countries} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{1}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-2} 
+\\[-1.8ex] & hwusual \\ 
+\\[-1.8ex] & \textit{OLS} \\ 
+ & Number of hours actually worked in main job \\ 
+\hline \\[-1.8ex] 
+ Actual & 0.444$^{***}$ \\ 
+  & (0.002) \\ 
+  & \\ 
+ Constant & 21.818$^{***}$ \\ 
+  & (0.076) \\ 
+  & \\ 
+\hline \\[-1.8ex] 
+Observations & 108,194 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table} 
+
+
+
+
