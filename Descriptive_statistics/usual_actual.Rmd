@@ -229,5 +229,47 @@ Observations & 108,194 \\
 \end{table} 
 
 
+## The link between usual and actual for subpopulations
+
+```{r}
+usual_30 <- eulfs_small[eulfs_small$hwusual == 30,]
+usual_50 <- eulfs_small[eulfs_small$hwusual == 50,]
+print(nrow(usual_30[usual_30$hwactual == 0,]) )
+print(nrow(usual_50[usual_50$hwactual == 0,]) )
+```
+
+
+```{r}
+eulfs_noNA <- eulfs_small[is.na(eulfs_small$hwusual) == FALSE,]
+```
+
+```{r}
+df_0actual <- data.frame(hwusual = numeric(), NumberOf0 = numeric())
+for (i in seq(0,8, by = 1)){
+  h <- i*10
+  usual_h <- eulfs_noNA[eulfs_noNA$hwusual == h,]
+  nb0 <- nrow(usual_h[usual_h$hwactual == 0,])
+  df_0actual[i,] <- c(h, nb0)
+}
+```
+
+```{r}
+plot(df_0actual)
+```
+
+
+```{r}
+df_prop0actual <- data.frame(hwusual = numeric(), ProportionOf0 = numeric())
+for (i in seq(0,8, by = 1)){
+  h <- i*10
+  usual_h <- eulfs_noNA[eulfs_noNA$hwusual == h,]
+  prop0 <- (nrow(usual_h[usual_h$hwactual == 0,]))/(nrow(usual_h))
+  df_prop0actual[i,] <- c(h, prop0)
+}
+```
+
+```{r}
+plot(df_prop0actual)
+```
 
 
