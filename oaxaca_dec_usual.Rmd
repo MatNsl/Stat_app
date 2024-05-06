@@ -1,13 +1,14 @@
 ---
-title: "Oaxaca-decomposition : explaining the differences in hours actually worked per week over the years"
+title: "Oaxaca-dec1omposition : explaining the differences in hours usually                   worked per week over the years"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
 
 
 ```{r cars}
@@ -26,13 +27,12 @@ library(tinytex)
 
 
 
-```{r}
-
+```{r pressure, echo=FALSE}
 source(file = "~/Stat_app/DATA/exporting_data_from_link.R")
 
 ```
 
-```{r}
+```{r pressure, echo=FALSE}
 path_occ <- "~/Stat_app/Occupation/occupation_status.xlsx"
 
 # Lire le fichier Excel
@@ -40,24 +40,25 @@ occu_code <- read.xlsx(path_occ)
 ```
 
 ```{r pressure, echo=FALSE}
+
 #Nettoyage de la base de données :
 
-dec <- eulfs_small
+dec1 <- eulfs_small
 #1. Enlever les valeurs NA de la variable expliquée : 
 
-dec$hwactual<-na_if(dec$hwactual,99)
-dec <-dec%>% filter(!is.na(hwactual))
+dec1$hwusual<-na_if(dec1$hwusual,99)
+dec1 <-dec1%>% filter(!is.na(hwusual))
 
 #2. Variable education : 
 
-dec$hatlev1d<-na_if(dec$hatlev1d,99)
-dec <-dec%>% filter(!is.na(hatlev1d))
+dec1$hatlev1d<-na_if(dec1$hatlev1d,99)
+dec1 <-dec1%>% filter(!is.na(hatlev1d))
 
 #On fait de la variable hatlev1d 3 variables binaires :
 
-dec$high_educ <- ifelse(dec$hatlev1d==3,1,0)
-dec$medium_educ <- ifelse(dec$hatlev1d==2,1,0)
-dec$low_educ <- ifelse(dec$hatlev1d==1,1,0)
+dec1$high_educ <- ifelse(dec1$hatlev1d==3,1,0)
+dec1$medium_educ <- ifelse(dec1$hatlev1d==2,1,0)
+dec1$low_educ <- ifelse(dec1$hatlev1d==1,1,0)
 
 #3. Occupation status : 
 #Création d'un nouveau df pour récupérer les variables occupation 
@@ -76,45 +77,46 @@ df$occupation_continous<-occupation$occupation_continuous
 
 df$hatlev1d<-na_if(df$hatlev1d,99)
 df<-df %>% filter(!is.na(hatlev1d))
-df$hwactual<-na_if(df$hwactual,99)
-df<-df %>% filter(!is.na(hwactual))
+df$hwusual<-na_if(df$hwusual,99)
+df<-df %>% filter(!is.na(hwusual))
 
-dec$occupation <- df$occupation_continous
-dec<- dec %>% filter(occupation!= 18)
+dec1$occupation <- df$occupation_continous
+dec1<- dec1 %>% filter(occupation!= 18)
 
 #On crée une variable binaire pour chaque statut
 
-dec$armed <- ifelse(dec$occupation==0,1,0)
-dec$manager <- ifelse(dec$occupation==100,1,0)
-dec$pro <- ifelse(dec$occupation==200,1,0)
-dec$tech <- ifelse(dec$occupation==300,1,0)
-dec$cler <- ifelse(dec$occupation==400,1,0)
-dec$service <- ifelse(dec$occupation==500,1,0)
-dec$agri <- ifelse(dec$occupation==600,1,0)
-dec$trade <- ifelse(dec$occupation==700,1,0)
-dec$operator <- ifelse(dec$occupation==800,1,0)
-dec$elementary <- ifelse(dec$occupation==900,1,0)
+dec1$armed <- ifelse(dec1$occupation==0,1,0)
+dec1$manager <- ifelse(dec1$occupation==100,1,0)
+dec1$pro <- ifelse(dec1$occupation==200,1,0)
+dec1$tech <- ifelse(dec1$occupation==300,1,0)
+dec1$cler <- ifelse(dec1$occupation==400,1,0)
+dec1$service <- ifelse(dec1$occupation==500,1,0)
+dec1$agri <- ifelse(dec1$occupation==600,1,0)
+dec1$trade <- ifelse(dec1$occupation==700,1,0)
+dec1$operator <- ifelse(dec1$occupation==800,1,0)
+dec1$elementary <- ifelse(dec1$occupation==900,1,0)
 
 #4. Gender
 
-dec$women <-if_else(dec$sex==2,1,0)
+dec1$women <-if_else(dec1$sex==2,1,0)
 
 ```
 
 ```{r}
 #Construire nos différentes bases pour nos différentes décompositions : 
 
-oaxaca_year <- dec %>% subset(select=c("year","hwactual","low_educ","high_educ"
+oaxaca_year1 <- dec1 %>% subset(select=c("year","hwusual","low_educ","high_educ"
 ,"medium_educ","armed", "manager","pro","tech","cler","service","agri","operator"
 ,"elementary","occupation","women","trade"))
-oaxaca_1 <- oaxaca_year%>%filter(year==1998|year==1999|year==2000|year==2011|year==2012|year==2013)
+oaxaca_1 <- oaxaca_year1%>%filter(year==1998|year==1999|year==2000|year==2011|year==2012|year==2013)
 oaxaca_1$y13 <- if_else(oaxaca_1$year==2011|oaxaca_1$year==2012|oaxaca_1$year==2013,1,0)
 
 ```
 
 ```{r pressure, echo=TRUE}
-#First decomposition : 1998-2013
-diff_1 <- oaxaca(formula = hwactual ~ women + high_educ + low_educ + manager 
+
+#First dec1omposition : 1998-2013
+diff_2 <- oaxaca(formula = hwusual ~ women + high_educ + low_educ + manager 
                       + pro + tech + cler + service + + agri + trade + operator 
                       + elementary |y13|manager + pro +
                         tech + cler + service + + agri + trade + operator +
@@ -123,39 +125,41 @@ diff_1 <- oaxaca(formula = hwactual ~ women + high_educ + low_educ + manager
 
 ```{r pressure, echo=FALSE}
 #Observations 
-diff_1$n
+diff_2$n
 
 
 
 #Differences :
-diff_1$y
+diff_2$y
 
 
 ```
-In our analyzed sample we have 18169 individuals working in 1998, 1999 and 2000
-and 20240 working in 2011,2012 and 2013.
+In our analyzed sample we have 17476 individuals working in 1998, 1999 and 2000
+and 20299 working in 2011,2012 and 2013.
 The y component of the resulting oaxaca-class object indicates that the mean of
-hours worked per week is 36.2 hours for group A (1998,1999 and 2000) and 
-33.4 hours for group B (2011,2012 and 2013) leaving 
-the difference of approximately 2,8 hours to be explained by the Blinder-Oaxaca
-decomposition.
+hours worked per week is 37.5 hours for group A (1998,1999 and 2000) and 
+36.7 hours for group B (2011,2012 and 2013) leaving 
+the difference of approximately 0.8 hours to be explained by the Blinder-Oaxaca
+dec1omposition.
 
-**Threefold decomposition :**
+**Threefold dec1omposition :**
 
 ```{r pressure, echo=FALSE}
-diff_1$threefold$overall
+
+diff_2$threefold$overall
+
 ```
 
-The results suggest that 0,3 hours of the 2,8 hours difference can be 
-attributed to group-differences in endowments (gender,education), 2,3 to 
-differences in coefficients, and 0,2 to the interaction between the two.
+The results suggest that 0,1 hours of the 0,8 hours difference can be 
+attributed to group-differences in endowments (gender,education), 0,7 to 
+differences in coefficients, and 0,1 to the interaction between the two.
 
 
 
   
 ```{r pressure, echo=FALSE}
 
-plot(diff_1, decomposition = "threefold",
+plot(diff_2, dec1omposition = "threefold",
      components = c("endowments","coefficients"), 
      unexplained.split = TRUE,
      variables=c("women","high_educ","low_educ", "manager","tech","pro", "cler", 
@@ -172,7 +176,7 @@ plot(diff_1, decomposition = "threefold",
                       "elementary"="Elementary occupations"))
 ```
 *Figure 1.* The endowments and coefficients components of a threefold 
-Blinder-Oaxaca decomposition of the 1998 vs. 2013 working hours gap.
+Blinder-Oaxaca dec1omposition of the 1998 vs. 2013 working hours gap.
 
 *Endowments*
 
@@ -181,88 +185,80 @@ that indicate 95% confidence intervals.
 In the endowments component, most variables appear to have a
 statistically insignificant (or only marginally significant) influence, 
 with the exceptions of
-the variables Women, Low Level of education, Professionals, Service and Sales 
-workers and Skilled agricultural, forestry and fishery workers and Managers.
+the variables Women, Low Level of education, High Level of education, 
+Professionals, Service and Salesworkers,Craft and related trades workers, 
+Plant and machine operators 
+and assemblers and Managers.
 Therefore, the variables explaining the mean difference are : Women, 
-Professionals, Service and Sales workers and 
-Skilled agricultural, forestry and fishery workers.
+Professionals,Craft and related trades workers, Plant and machine operators 
+and assemblers and Managers.
 
 ```{r pressure, echo=FALSE}
 
+
 print("women")
-summary(diff_1$reg$reg.pooled.2)$coefficients["women",]
+summary(diff_2$reg$reg.pooled.2)$coefficients["women",]
 print("manager")
-summary(diff_1$reg$reg.pooled.2)$coefficients["manager",]
+summary(diff_2$reg$reg.pooled.2)$coefficients["manager",]
 print("pro")
-summary(diff_1$reg$reg.pooled.2)$coefficients["pro",]
+summary(diff_2$reg$reg.pooled.2)$coefficients["pro",]
+print("trade")
+summary(diff_2$reg$reg.pooled.2)$coefficients["trade",]
 print("service")
-summary(diff_1$reg$reg.pooled.2)$coefficients["service",]
-print("agri")
-summary(diff_1$reg$reg.pooled.2)$coefficients["agri",]
+summary(diff_2$reg$reg.pooled.2)$coefficients["service",]
+print("operator")
+summary(diff_2$reg$reg.pooled.2)$coefficients["operator",]
 
 
 ```
-The coefficients of the pooled regression of "pro" and "service" seems to be non 
-significant given their p-value. But the others have a significant p-value which
-makes reject the null hypothesis at 1%.
+The only coefficients that have a significant p-value are "women" and "manager".
 
 ```{r pressure, echo=TRUE}
-diff_1$x$x.mean.diff["women"]
+diff_2$x$x.mean.diff["women"]
 ```
 There are more women working in the years 2011,2012 and 2013 than in the years
-1998,1999 and 2000. The pooled regressions shows that being a woman decreases 
-the mean of working hours by 5,6 hours. 
+1998,1999 and 2000. The pooled regressions shows that being a woman dec1reases 
+the mean of working hours by 4,5 hours. 
 
 ```{r pressure, echo=TRUE}
-diff_1$x$x.mean.diff["manager"]
+
+diff_2$x$x.mean.diff["manager"]
 ```
 A larger proportion of individuals working in 1998/1999/2000 work in the 
 Managers occupational status. However the pooled regressions shows us that this 
 occupational status works 4,6 hours more than the average. 
 
-```{r pressure, echo=TRUE}
-diff_1$x$x.mean.diff["agri"]
-```
-There are more workers working in the occupational status "Skilled agricultural,
-forestry and fishery workers" in 1998/1999/2000 than in 2011/2012/2013. The 
-coefficient of "agri" in the pooled regression show us that the individuals 
-working in this status work 3 hours more than the average. 
 
 *Coefficients :*
 
 ```{r}
 
-diff_1$beta$beta.diff["low_educ"]
-
-diff_1$beta$beta.diff["agri"]
-
-diff_1$beta$beta.diff["manager"]
+diff_2$beta$beta.diff["manager"]
    
 ```
-The differences in coefficients of low_educ, manager and agri drives a large 
+The difference in coefficients of manager drives a large 
 proportion  of the gap between 1998/1999/2000 vs. 2011/2012/2013. We understand 
-that the return in working hours of working in the Skilled agricultural,
-forestry and fishery workers or having a low level of education is greater in 
+that the return in working hours of working in the Managers staus,is greater in 
 the years 1998/1999/2000 and 2011/2012/2013.
 
-*Twofold decomposition*
+*Twofold dec1omposition*
 
 ```{r pressure, echo=TRUE}
-diff_1$twofold$overall
+diff_2$twofold$overall
 ```
-We focus our discussion on the Neumark decomposition, which
+We focus our discussion on the Neumark dec1omposition, which
 uses pooled regression coefficients, denoted by -1 in the weights column, 
 (from a regression that does not include the group indicator variable of 2013) 
 as the reference 
-coefficient set, . The results of the overall twofold decomposition indicate 
+coefficient set, . The results of the overall twofold dec1omposition indicate 
 that the working hours gap between 1998/1999/2000 and 2011/2012/2013 workers can 
-be decomposed into
+be dec1omposed into
 0,4 hours that can be explained by group differences in the explanatory 
 variables and 2,4 hours that is unexplained.
 
 ```{r pressure, echo=TRUE}
 
-plot(diff_1, decomposition = "twofold",
+plot(diff_2, decomposition = "twofold",
      components = c("explained","unexplained"), 
      group.weight = -1,
      variables=c("women","high_educ","low_educ", "manager","tech","pro", "cler", 
@@ -279,10 +275,10 @@ plot(diff_1, decomposition = "twofold",
                       "elementary"="Elementary occupations"))
 ```
 *Figure 2* The explained and unexplained components of a twofold Blinder-Oaxaca
-decomposition of the 1998/1999/2000 vs. 2011/2012/2013 working hours gap.
+dec1omposition of the 1998/1999/2000 vs. 2011/2012/2013 working hours gap.
 The results are consistent with the threefold composition. 
 ```{r pressure, echo=TRUE}
-plot(diff_1, decomposition = "twofold", group.weight = -1,
+plot(diff_2, decomposition = "twofold", group.weight = -1,
      unexplained.split = TRUE,
      components="explained",
      variables=c("women","high_educ","low_educ", "manager","tech","pro", "cler", 
@@ -300,7 +296,7 @@ plot(diff_1, decomposition = "twofold", group.weight = -1,
 ```
 
 ```{r pressure, echo=TRUE}
-plot(diff_1, decomposition = "twofold", group.weight = -1,
+plot(diff_2, decomposition = "twofold", group.weight = -1,
      components="unexplained",
      variables=c("women","high_educ","low_educ", "manager","tech","pro", "cler", 
                  "service", "agri","trade", "operator","elementary"),
@@ -318,25 +314,28 @@ plot(diff_1, decomposition = "twofold", group.weight = -1,
 
 
 ```{r pressure, echo=TRUE}
-plot(diff_1, decomposition = "twofold", group.weight = -1,
+
+
+
+plot(diff_2, decomposition = "twofold", group.weight = -1,
      unexplained.split = TRUE,
      components=c("unexplained A","unexplained B"),
      component.labels = c("unexplained A"="Unexplained A",
                           "unexplained B"="Unexplained B"),
-     variables=c("low_educ", "manager","agri"),
-    variable.labels=c("low_educ"="Low level of education", "manager"="Managers",
-                  "agri"=" Skilled agricultural, forestry and fishery workers"),
+     variables=c("high_educ", "manager"),
+    variable.labels=c("high_educ"="High level of education", "manager"="Managers"),
     component.left=TRUE)
+
 ```
 *Figure 4* The unexplained portion’s discrimination sub-components in a 
 twofold Blinder-
-Oaxaca decomposition of the 1998 vs. 2013 working hours gap. 
+Oaxaca dec1omposition of the 1998 vs. 2013 working hours gap. 
 
 
 ```{r}
-variables <- c("low_educ", "manager", "agri")
+variables <- c("low_educ", "manager")
 columns <- c("group.weight", "coef(unexplained A)", "coef(unexplained B)")
-diff_1$twofold$variables[[5]][variables, columns]
+diff_2$twofold$variables[[5]][variables, columns]
 
 ```
 
@@ -346,14 +345,12 @@ diff_1$twofold$variables[[5]][variables, columns]
 The results suggests that much of the gap between 1998/1999/2000 and 
 2011/2012/2013 can be explained by the following facts : 
 -There are less workers working in the occupational status of "Managers" and 
-"Skilled agricultural" the last three years when people working in those 
-professionals status tends to work more hours than the average.
+when people working in this professionals statu tends to work more hours than 
+the average.
 -There are more workers working in the occupational status of "Professionals", 
 "Service and sales workers" and more women working in the last three years than 
 in the first three years. Those workers appears to 
 have a mean of working hours lower than the overall mean.
--Having a low level of education increases working hours in a bigger way in
-2011/2012/2013 than it does in 1998/1999/2000.
 -Working in the professional status managers increases working hours in a bigger 
 way in 1998/1999/2000 than it does in 2011/2012/2013. 
 
