@@ -1,5 +1,20 @@
-##### Preliminaries -----
+---
+title: "Description of variables"
+output:
+  pdf_document: default
+  html_document: default
+date: "2024-05-08"
+---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
+```
+
+```{r}
 install.packages("dplyr")
 install.packages("ggplot2")
 install.packages("labelled")
@@ -11,10 +26,12 @@ install.packages("lmtest")
 library("dplyr")
 library("ggplot2")
 library("labelled")
-library(xtable)
 
-source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
+library(xtable) # To have LaTeX tables based on dataframes
+```
 
+Copied from Anais
+```{r}
 ##### Copy of Anais -----
 
 dec1 <- eulfs_small
@@ -73,12 +90,11 @@ dec1$elementary <- ifelse(dec1$occupation==900,1,0)
 #4. Gender
 
 dec1$women <-if_else(dec1$sex==2,1,0)
+```
 
+Dataframes with percentages
 
-##### My part -----
-
-# Dataframe with percentages
-
+```{r}
 # Percentages for occupations
 
 vec_occup <- c("armed", "manager","pro","tech","cler","service","agri","operator"
@@ -97,7 +113,9 @@ for (i in colnames(df_occu)){
   l <- l+1
   df_occu_percent[l,] <- c(names_occup[l], paste(percent, "%", sep = ""))
 }
+```
 
+```{r}
 # Percentages for education
 
 vec_educ <- c("high_educ", "medium_educ", "low_educ")
@@ -111,7 +129,9 @@ for (i in colnames(df_educ)){
   l <- l+1
   df_educ_percent[l,] <- c(names_educ[l], paste(percent, "%", sep = ""))
 }
+```
 
+```{r}
 # Percentages for sex
 
 names_sex <- c("Men", "Women")
@@ -124,75 +144,48 @@ for (v in c(0,1)){
   df_sex_percent[l,] <- c(names_sex[l], paste(percent, "%", sep = ""))
 }
 
-# Combining
-
-space <- data.frame(Variable = "", Percentage = "")
-
-df_total <- rbind(df_sex_percent, space, df_educ_percent, space, df_occu_percent)
-
 rm(l,i,v)
+```
 
-#
+```{r}
+# Combining
+space <- data.frame(Variable = "", Percentage = "")
+df_total <- rbind(df_sex_percent, space, df_educ_percent, space, df_occu_percent)
+```
 
+```{r}
+print(xtable(df_total, caption = "Percentages for some variables (sex, education and occupations)"), include.rownames=FALSE)
 
-##### Years -----
+```
+\begin{table}[ht]
+\centering
+\begin{tabular}{ll}
+  \hline
+Variable & Percentage \\ 
+  \hline
+Men & 53.78\% \\ 
+  Women & 46.22\% \\ 
+   &  \\ 
+  High education & 26.17\% \\ 
+  Medium education & 49.6\% \\ 
+  Low education & 24.22\% \\ 
+   &  \\ 
+  Armed forces occupations & 0.44\% \\ 
+  Managers & 7.7\% \\ 
+  Professionals & 14.72\% \\ 
+  Technicians and associate professionals & 15.03\% \\ 
+  Clerical support workers & 9.56\% \\ 
+  Service and sales workers & 14.9\% \\ 
+  Skilled agricultural, forestry and fishery workers & 6.05\% \\ 
+  Craft and related trades workers & 8.89\% \\ 
+  Plant and machine operators and assemblers & 9.09\% \\ 
+  Elementary occupations & 13.63\% \\ 
+   \hline
+\end{tabular}
+\caption{Percentages for some variables (sex, education and occupations)} 
+\end{table}
 
+```{r pressure, echo=FALSE}
 
-
-
-
-
-
-
-
-
-
-
-
-##### Useless -----
-
-dec1 <- eulfs_small
-
-#1. Enlever les valeurs NA de la variable expliquée : 
-
-dec1$hwusual<-na_if(dec1$hwusual,99)
-dec1 <-dec1%>% filter(!is.na(hwusual))
-
-
-
-# Occupation
-
-occupation <- subset(eulfs_small, select=c("year","isco1d","is881d"))
-occupation$isco1d <- na_if(occupation$isco1d,99)
-occupation$is881d <- na_if(occupation$is881d,99)
-occupation$isco1d <- ifelse(occupation$year > 2010 & is.na(occupation$isco1d),18,
-                          occupation$isco1d)
-occupation$is881d <- ifelse(occupation$year < 2011 & is.na(occupation$is881d),18,
-                          occupation$is881d)
-
-occupation$occupation_continuous <- ifelse(is.na(occupation$isco1d),occupation$is881d,occupation$isco1d)
-eulfs <- eulfs_small
-eulfs$occupation_continous<-occupation$occupation_continuous
-
-eulfs$hatlev1d <- na_if(eulfs$hatlev1d,99)
-eulfs <- eulfs %>% filter(!is.na(hatlev1d))
-eulfs$hwusual <- na_if(eulfs$hwusual,99)
-eulfs <- eulfs %>% filter(!is.na(hwusual))
-
-dec1$occupation <- eulfs$occupation_continous
-dec1 <- dec1 %>% filter(occupation!= 18)
-
-#On crée une variable binaire pour chaque statut
-
-dec1$armed <- ifelse(dec1$occupation==0,1,0)
-dec1$manager <- ifelse(dec1$occupation==100,1,0)
-dec1$pro <- ifelse(dec1$occupation==200,1,0)
-dec1$tech <- ifelse(dec1$occupation==300,1,0)
-dec1$cler <- ifelse(dec1$occupation==400,1,0)
-dec1$service <- ifelse(dec1$occupation==500,1,0)
-dec1$agri <- ifelse(dec1$occupation==600,1,0)
-dec1$trade <- ifelse(dec1$occupation==700,1,0)
-dec1$operator <- ifelse(dec1$occupation==800,1,0)
-dec1$elementary <- ifelse(dec1$occupation==900,1,0)
-
+```
 
