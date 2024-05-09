@@ -67,7 +67,7 @@ for (q in quantiles) {
 
 ```{r}
 # Regressions for 1998, one variable
-eulfs_small_year <- subset(eulfs_small, refyear == 1998)
+eulfs_small_year <- subset(eulfs_small, refyear == 2013)
 
 # Initialize a list to store the results
 results <- list()
@@ -109,7 +109,7 @@ eulfs_small$low_educ <- ifelse(eulfs_small$hatlev1d==1,1,0)
 
 
 ```{r}
-# Regressions for a given year
+# Regressions for a given year (sex, educ)
 eulfs_small_year <- subset(eulfs_small, refyear == 2013)
 
 # Initialize a list to store the results
@@ -149,7 +149,7 @@ rm(xtable_data)
 
 
 ```{r}
-# Regressions for a given year (sex, age, educ)
+# Regressions on (sex, age, educ), 2013
 eulfs_small_year <- subset(eulfs_small, refyear == 2013)
 
 
@@ -188,8 +188,10 @@ print(xtable_data)
 rm(xtable_data)
 ```
 
+
+
 ```{r}
-# Filtrer les données pour inclure les années 2011, 2012 et 2013
+# Regression on  (sex, age, educ) for 1998, 1999 and 2000, no cluster
 eulfs_small_years <- subset(eulfs_small, refyear %in% c(2011, 2012, 2013))
 
 # Initialize une liste pour stocker les résultats
@@ -228,14 +230,14 @@ print(xtable_data)
 
 
 ```{r}
-# Regressions for a given year (sex, age, educ)
+# Regression on  (sex, age, educ) for 1998, 1999 and 2000, cluster on refyear
+# doesn't work yet
 eulfs_small_year_clust <- subset(eulfs_small, refyear %in% c(1998, 1999, 2000))
 
 
 # Initialize a list to store the results
 results <- list()
 
-# Loop over each quantile
 # Loop over each quantile
 for (q in quantiles) {
   # Fit the quantile regression model with both sex and age
