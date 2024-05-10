@@ -1,0 +1,58 @@
+---
+title: "Austria"
+output:
+  pdf_document: default
+  html_document: default
+date: "2024-05-10"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source(file = "~/work/Stat_app/DATA/exporting_data_from_link.R")
+```
+
+```{r}
+source(file="~/work/Stat_app/Countries/countries_code.R")
+```
+
+```{r}
+#Packages :
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("labelled")
+library("dplyr")
+library("ggplot2")
+library("labelled")
+
+# Add this package for %>%
+library("magrittr")
+```
+
+```{r}
+install.packages("reshape2")
+```
+
+
+
+We may analyse data for a specific country, for instance Austria.
+
+```{r fig.cap= ""}
+# Starting by creating a smaller base to work with
+eulfs_AT <- eulfs_small %>% filter(country == 1) %>% select(hwusual, refyear)
+# Indicating what statistics we want to appear on the plot
+frame <- eulfs_AT %>% group_by(refyear, .drop = NA) %>% summarise(Min = min(hwusual, na.rm = TRUE), Max = max(hwusual, na.rm = TRUE), Median = median(hwusual, na.rm = TRUE), quant1 = quantile(hwusual, probs = 0.25, na.rm = TRUE), quant2 = quantile(hwusual, probs = 0.75, na.rm = TRUE))
+# Creating the graph
+p <- ggplot(frame, aes(x = refyear, na.rm = TRUE)) + geom_line(aes(y=Min)) + geom_line(aes(y=Max), color = "green") + geom_line(aes(y=Median), color = "darkred") + geom_line(aes(y=quant1), color = "blue") + geom_line(aes(y=quant2), color = "red") + labs(title = "Usual weekly working hours in main job in Austria", x=" ", y="Number of weekly working hours")
+# Plotting the graph
+p
+```
+Figure 7. **Those who work the least tend to have less and less working hours in recent years in Austria**. A few order statistics concerning Austria: the minimum, the three quartiles and the maximum of the number of hours usually worked in main job. From the 2014 release of the EU Labor Force Survey, own analyses.
+
+We notice that all quartiles remain somewhat stable, except the first quartile.
+Indeed, the quarter of the population who work the least has less and less working hours.
+The number of hours dropped below 20 hours after 2010.
+
+

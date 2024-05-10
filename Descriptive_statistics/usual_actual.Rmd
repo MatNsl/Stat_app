@@ -275,8 +275,8 @@ plot(df_prop0actual)
 
 ```{r}
 df_prop0actual <- data.frame(hwusual = numeric(), ProportionOf0 = numeric())
-for (i in seq(0,16, by = 1)){
-  h <- i*5
+for (i in seq(0,80, by = 1)){
+  h <- i
   usual_h <- eulfs_noNA[eulfs_noNA$hwusual == h,]
   prop0 <- (nrow(usual_h[usual_h$hwactual == 0,]))/(nrow(usual_h))
   df_prop0actual[i,] <- c(h, prop0)

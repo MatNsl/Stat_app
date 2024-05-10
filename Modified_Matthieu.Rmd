@@ -1,6 +1,8 @@
 ---
 title: "Modified_graph_Mat"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 date: "2024-02-27"
 ---
 
@@ -62,7 +64,7 @@ dens2[[2]] <- head(dens2[[2]], -loss)
 ### Plot
 # Plot y-values scaled by number of observations against x values
 par(mar = c(5.1, 5.1, 4.1, 2.1))
-plot <- plot(dens2$x, dens2$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours", las = 2)
+plot <- plot(dens2$x, dens2$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours", las = 1)
 lines(dens1$x, dens1$y, col = "red")
 title(ylab = "Proportion of people", line = 3) # a readable y-label
 
@@ -109,7 +111,7 @@ dens2[[2]] <- head(dens2[[2]], -loss_b)
 ### Plot
 # Plot y-values scaled by number of observations against x values
 par(mar = c(5.1, 5.1, 4.1, 2.1))
-plot <- plot(dens2$x, dens2$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours", las = 2)
+plot <- plot(dens2$x, dens2$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours", las = 1)
 lines(dens1$x, dens1$y, col = "red")
 text(c(2,2),c(37,35),labels=c("Non-case","Case"))
 text(x = 2, y = 3, "This is my text")
@@ -175,7 +177,7 @@ dens2[[2]] <- head(dens2[[2]], -loss_2)
 ### Plot
 # Plot y-values scaled by number of observations against x values
 par(mar = c(5.1, 5.1, 4.1, 2.1))
-plot <- plot(dens1$x, dens1$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours", las = 2)
+plot <- plot(dens1$x, dens1$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours", las = 1)
 lines(dens3$x, dens3$y, col = "blue")
 lines(dens2$x, dens2$y, col = "red")
 title(ylab = "Proportion of people", line = 3) # a readable y-label
@@ -254,7 +256,7 @@ dens3[[2]] <- head(dens3[[2]], -loss_2)
 ##### Plot -------
 # Plot y-values scaled by number of observations against x values
 par(mar = c(5.1, 5.1, 4.1, 2.1))
-plot <- plot(dens1$x, dens1$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours wished by workers", las = 2)
+plot <- plot(dens1$x, dens1$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours wished by workers", las = 1)
 lines(dens2$x, dens2$y, col = "red")
 lines(dens3$x, dens3$y, col = "blue")
 title(ylab = "Proportion of people", line = 3) # a readable y-label
@@ -388,7 +390,7 @@ eulfs_RO <- eulfs_small %>% filter(country == 27) %>% select(hwusual, refyear)
 # Indicating what statistics we want to appear on the plot
 frame <- eulfs_RO %>% group_by(refyear, .drop = NA) %>% summarise(Min = min(hwusual, na.rm = TRUE), Max = max(hwusual, na.rm = TRUE), Median = median(hwusual, na.rm = TRUE), quant1 = quantile(hwusual, probs = 0.25, na.rm = TRUE), quant2 = quantile(hwusual, probs = 0.75, na.rm = TRUE), dec1 = quantile(hwusual, probs = 0.10, na.rm = TRUE), dec9 = quantile(hwusual, probs = 0.90, na.rm = TRUE), dec05 = quantile(hwusual, probs = 0.05, na.rm = TRUE), dec95 = quantile(hwusual, probs = 0.95, na.rm = TRUE))
 # Creating the graph
-p <- ggplot(frame, aes(x = refyear, na.rm = TRUE)) + geom_line(aes(y=Min)) + geom_line(aes(y=Max), color = "green") + geom_line(aes(y=Median), color = "darkred") + geom_line(aes(y=quant1), color = "blue") + geom_line(aes(y=quant2), color = "red") + geom_line(aes(y=dec1), color = "skyblue") + geom_line(aes(y=dec9), color = "skyblue") + geom_line(aes(y=dec05), color = "purple") + geom_line(aes(y=dec95), color = "purple") + labs(title = "Actual weekly working hours in 1st job in Romania", x=" ", y="Number of weekly working hours")
+p <- ggplot(frame, aes(x = refyear, na.rm = TRUE)) + geom_line(aes(y=Min)) + geom_line(aes(y=Max), color = "green") + geom_line(aes(y=Median), color = "darkred") + geom_line(aes(y=quant1), color = "blue") + geom_line(aes(y=quant2), color = "red") + geom_line(aes(y=dec1), color = "skyblue") + geom_line(aes(y=dec9), color = "skyblue") + geom_line(aes(y=dec05), color = "purple") + geom_line(aes(y=dec95), color = "purple") + labs(title = "Usual weekly working hours in main job in Romania", x=" ", y="Number of weekly working hours")
 # Plotting the graph
 p
 ```
@@ -412,7 +414,7 @@ dens1[[2]] <- head(dens1[[2]], -loss_2)
 ##### Plot -------
 # Plot y-values scaled by number of observations against x values
 par(mar = c(5.1, 5.1, 4.1, 2.1))
-plot <- plot(dens1$x, dens1$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours usually worked", las = 2)
+plot <- plot(dens1$x, dens1$y,type="l",xlab="Number of hours",ylab="", main = "Distribution of the number of hours usually worked", las = 1)
 title(ylab = "Proportion of people", line = 3) # a readable y-label
 ```
 Figure 10. **On average, Romanians work as much as other Europeans, but a very strong minority does not work**. Density of the number of hours usually worked in Romania. From the 2014 release of the EU Labor Force Survey, own analyses.
